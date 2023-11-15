@@ -39,22 +39,26 @@ class TestActionsSyncWebsocket:
         return 'queries/actions/sync'
 
     def test_create_user_fail(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_user_fail.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/create_user_fail.yaml', transport)
 
     def test_create_user_success(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_user_success.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/create_user_success.yaml', transport)
 
     def test_create_user_relationship(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_user_relationship.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/create_user_relationship.yaml', transport
+        )
 
     def test_create_user_relationship(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_user_relationship_fail.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/create_user_relationship_fail.yaml', transport
+        )
 
     def test_create_users_fail(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_users_fail.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/create_users_fail.yaml', transport)
 
     def test_create_users_success(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/create_users_success.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/create_users_success.yaml', transport)
 
 @pytest.mark.parametrize("transport", ['http', 'websocket'])
 @pytest.mark.usefixtures(
@@ -69,7 +73,9 @@ class TestActionsRelationshipsBasic:
         return 'queries/actions/relationships/basic'
 
     def test_query_with_relationships(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_with_relationships.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/query_with_relationships.yaml', transport
+        )
 
 @use_action_fixtures
 class TestActionsSync:
@@ -79,60 +85,93 @@ class TestActionsSync:
         return 'queries/actions/sync'
 
     def test_null_response(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/null_response.yaml')
+        check_query_secret(hge_ctx, f'{self.dir()}/null_response.yaml')
     
     def test_omitted_field_response_for_nullable_field(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/omitted_field_response_for_nullable_field.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/omitted_field_response_for_nullable_field.yaml'
+        )
 
     def test_expecting_object_response_got_null(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_object_response_got_null.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/expecting_object_response_got_null.yaml'
+        )
 
     def test_expecting_array_response_got_null(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_array_response_got_null.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/expecting_array_response_got_null.yaml'
+        )
 
     def test_expecting_object_response_got_array(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_object_response.yaml')
+        check_query_secret(hge_ctx, f'{self.dir()}/expecting_object_response.yaml')
 
     def test_expecting_array_response_got_object(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_array_response.yaml')
+        check_query_secret(hge_ctx, f'{self.dir()}/expecting_array_response.yaml')
 
     # Scalar webhook response tests.
     def test_expecting_scalar_output_type_success(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/get_scalar_action_output_type_success.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/get_scalar_action_output_type_success.yaml'
+        )
 
     def test_expecting_scalar_string_output_type_got_object(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_scalar_response_got_object.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/expecting_scalar_response_got_object.yaml'
+        )
 
     def test_expecting_object_output_type_got_scalar_string(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/expecting_object_response_got_scalar.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/expecting_object_response_got_scalar.yaml'
+        )
 
     def test_scalar_response_action_transformed_output(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/scalar_response_action_transformed_output.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/scalar_response_action_transformed_output.yaml'
+        )
 
     def test_object_response_action_transformed_output(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/object_response_action_transformed_output.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/object_response_action_transformed_output.yaml'
+        )
 
     # Scalar array tests
     def test_expecting_string_scalar_array_output_type_success(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/get_string_scalar_array_action_output_type_success.yaml')
+        check_query_secret(
+            hge_ctx,
+            f'{self.dir()}/get_string_scalar_array_action_output_type_success.yaml',
+        )
 
     def test_expecting_number_scalar_array_output_type_got_string_array(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/get_string_scalar_array_action_output_type_expecting_number_array.yaml')
+        check_query_secret(
+            hge_ctx,
+            f'{self.dir()}/get_string_scalar_array_action_output_type_expecting_number_array.yaml',
+        )
 
     def test_scalar_array_field_nullability_check(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/get_null_field_expecting_non_nullable_field_array.yaml')
+        check_query_secret(
+            hge_ctx,
+            f'{self.dir()}/get_null_field_expecting_non_nullable_field_array.yaml',
+        )
 
     def test_expecting_object_response_with_nested_null(self, hge_ctx):
-       check_query_f(hge_ctx, self.dir() + '/expecting_object_response_with_nested_null.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/expecting_object_response_with_nested_null.yaml',
+        )
 
     def test_expecting_jsonb_response_success(self, hge_ctx):
-       check_query_f(hge_ctx, self.dir() + '/expecting_jsonb_response_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/expecting_jsonb_response_success.yaml')
 
     def test_expecting_custom_scalar_response_success(self, hge_ctx):
-       check_query_f(hge_ctx, self.dir() + '/expecting_custom_scalar_response_success.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/expecting_custom_scalar_response_success.yaml'
+        )
 
     def test_expecting_custom_scalar_array_response_success(self, hge_ctx):
-       check_query_f(hge_ctx, self.dir() + '/expecting_custom_scalar_array_response_success.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/expecting_custom_scalar_array_response_success.yaml',
+        )
 
     def test_expecting_custom_scalar_array_response_got_different_type(self, hge_ctx):
         query_obj = {
@@ -179,22 +218,26 @@ class TestActionsSync:
 
     # Webhook response validation tests. See https://github.com/hasura/graphql-engine/issues/3977
     def test_mirror_action_not_null(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/mirror_action_not_null.yaml')
+        check_query_secret(hge_ctx, f'{self.dir()}/mirror_action_not_null.yaml')
 
     def test_mirror_action_unexpected_field(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/mirror_action_unexpected_field.yaml')
+        check_query_secret(
+            hge_ctx, f'{self.dir()}/mirror_action_unexpected_field.yaml'
+        )
 
     def test_mirror_action_no_field(self, hge_ctx):
-        check_query_secret(hge_ctx, self.dir() + '/mirror_action_no_field.yaml')
+        check_query_secret(hge_ctx, f'{self.dir()}/mirror_action_no_field.yaml')
 
     def test_mirror_action_success(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/mirror_action_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/mirror_action_success.yaml')
 
     def test_mirror_action_transformed_success(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/mirror_action_transformed_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/mirror_action_transformed_success.yaml')
 
     def test_mirror_action_transformed_output_success(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/mirror_action_transformed_output_success.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/mirror_action_transformed_output_success.yaml'
+        )
 
     def test_mirror_headers(self, hge_ctx):
         query = """
@@ -224,7 +267,9 @@ class TestActionsSync:
         assert user_agent_header.startswith("hasura-graphql-engine/")
 
     def test_results_list_transformed_output_success(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/results_list_transformed_output_success.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/results_list_transformed_output_success.yaml'
+        )
 
     #https://github.com/hasura/graphql-engine/issues/6631
     def test_create_users_output_type(self, hge_ctx):
@@ -264,7 +309,7 @@ class TestActionsSyncWithRemoteJoins:
         return 'queries/actions/sync/remote_joins'
 
     def test_action_with_remote_joins(self,hge_ctx):
-        check_query_f(hge_ctx,self.dir() + '/action_with_remote_joins.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/action_with_remote_joins.yaml')
 
 # Check query with admin secret tokens
 def check_query_secret(hge_ctx, f):
@@ -295,25 +340,33 @@ class TestQueryActions:
 
     # toplevel, extensions with error
     def test_query_action_extensions_code_both_codes_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_both_codes.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/extensions_code_both_codes.yaml')
     # toplevel, extensions with no error
     def test_query_action_extensions_code_toplevel_empty_extensions_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_toplevel_empty_extensions.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/extensions_code_toplevel_empty_extensions.yaml'
+        )
     # toplevel, no extensions
     def test_query_action_extensions_code_toplevel_no_extensions_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_toplevel_no_extensions.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/extensions_code_toplevel_no_extensions.yaml'
+        )
     # no toplevel, extensions with error
     def test_query_action_extensions_code_only_extensions_code_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_only_extensions_code.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/extensions_code_only_extensions_code.yaml'
+        )
     # no toplevel, extensions with no error
     def test_query_action_extensions_code_only_empty_extensions_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_only_empty_extensions.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/extensions_code_only_empty_extensions.yaml'
+        )
     # no toplevel, no extensions
     def test_query_action_extensions_code_nothing_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/extensions_code_nothing.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/extensions_code_nothing.yaml')
 
     def test_query_action_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/get_user_by_email_fail.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/get_user_by_email_fail.yaml')
 
     def test_query_action_success_output_object(self, hge_ctx):
         gql_query = '''
@@ -332,7 +385,7 @@ class TestQueryActions:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         code, resp, _ = hge_ctx.anyq('/v1/graphql', query, headers)
         assert code == 200,resp
-        check_query_f(hge_ctx, self.dir() + '/get_user_by_email_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/get_user_by_email_success.yaml')
 
     def test_query_action_success_output_nested_object(self, hge_ctx):
         gql_query = '''
@@ -351,7 +404,7 @@ class TestQueryActions:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         code, resp, _ = hge_ctx.anyq('/v1/graphql', query, headers)
         assert code == 200,resp
-        check_query_f(hge_ctx, self.dir() + '/get_user_by_email_nested_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/get_user_by_email_nested_success.yaml')
 
     def test_query_action_success_output_nested_join(self, hge_ctx):
         gql_query = '''
@@ -370,7 +423,9 @@ class TestQueryActions:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         code, resp, _ = hge_ctx.anyq('/v1/graphql', query, headers)
         assert code == 200,resp
-        check_query_f(hge_ctx, self.dir() + '/get_user_by_email_nested_join_success.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/get_user_by_email_nested_join_success.yaml'
+        )
 
     def test_query_action_success_output_list(self, hge_ctx):
         gql_query = '''
@@ -394,7 +449,7 @@ class TestQueryActions:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         code, resp, _ = hge_ctx.anyq('/v1/graphql', query, headers)
         assert code == 200,resp
-        check_query_f(hge_ctx, self.dir() + '/get_users_by_email_success.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/get_users_by_email_success.yaml')
 
     # This test is to make sure that query actions work well with variables.
     # Earlier the HGE used to add the query action to the plan cache, which
@@ -415,14 +470,15 @@ class TestQueryActions:
             self.test_query_action_success_output_object(hge_ctx)
 
     def test_query_action_with_relationship(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/query_action_relationship_with_permission.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/query_action_relationship_with_permission.yaml'
+        )
 
     def test_query_action_recursive_output(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/query_action_recursive_output.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/query_action_recursive_output.yaml')
 
 def mk_headers_with_secret(hge_ctx, headers={}):
-    admin_secret = hge_ctx.hge_key
-    if admin_secret:
+    if admin_secret := hge_ctx.hge_key:
         headers['X-Hasura-Admin-Secret'] = admin_secret
     return headers
 
@@ -798,11 +854,17 @@ class TestCreateActionNestedTypeWithRelation:
 
     # no toplevel, extensions with no error
     def test_create_async_action_with_nested_output_and_relation_fail(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/create_async_action_with_nested_output_and_relation.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/create_async_action_with_nested_output_and_relation.yaml',
+        )
 
     # no toplevel, extensions with no error
     def test_create_sync_action_with_nested_output_and_nested_relation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/create_sync_action_with_nested_output_and_nested_relation.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/create_sync_action_with_nested_output_and_nested_relation.yaml',
+        )
 
 @pytest.mark.usefixtures('postgis', 'actions_fixture', 'per_class_tests_db_state')
 class TestSetCustomTypes:
@@ -812,19 +874,19 @@ class TestSetCustomTypes:
         return 'queries/actions/custom-types'
 
     def test_reuse_pgscalars(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/reuse_pgscalars.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/reuse_pgscalars.yaml')
 
     def test_reuse_unknown_pgscalar(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/reuse_unknown_pgscalar.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/reuse_unknown_pgscalar.yaml')
 
     def test_create_action_pg_scalar(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/create_action_pg_scalar.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/create_action_pg_scalar.yaml')
 
     def test_list_type_relationship(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/list_type_relationship.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/list_type_relationship.yaml')
 
     def test_drop_relationship(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/drop_relationship.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/drop_relationship.yaml')
 
 @pytest.mark.usefixtures('actions_fixture', 'per_class_tests_db_state')
 class TestActionsMetadata:
@@ -834,10 +896,10 @@ class TestActionsMetadata:
         return 'queries/actions/metadata'
 
     def test_recreate_permission(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/recreate_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/recreate_permission.yaml')
 
     def test_create_with_headers(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/create_with_headers.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/create_with_headers.yaml')
 
 @pytest.mark.usefixtures('per_class_tests_db_state')
 class TestActionIntrospection:
@@ -847,17 +909,16 @@ class TestActionIntrospection:
         return 'queries/actions/introspection'
 
     def test_introspection_query(self, hge_ctx):
-        conf = get_conf_f(self.dir() + '/introspection_query.yaml')
+        conf = get_conf_f(f'{self.dir()}/introspection_query.yaml')
         headers = {}
-        admin_secret = hge_ctx.hge_key
-        if admin_secret:
+        if admin_secret := hge_ctx.hge_key:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         code, resp, _ = hge_ctx.anyq(conf['url'], conf['query'], headers)
         assert code == 200, resp
         assert 'data' in resp, resp
 
     def test_output_types(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/output_types_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/output_types_query.yaml')
 
 @pytest.mark.usefixtures('per_class_tests_db_state')
 class TestFunctionReturnTypeIntrospection:
@@ -867,7 +928,7 @@ class TestFunctionReturnTypeIntrospection:
         return 'queries/actions/introspection/function_return_type'
 
     def test_function_return_type(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/function_return_type.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/function_return_type.yaml')
 
 
 @use_action_fixtures

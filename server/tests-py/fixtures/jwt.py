@@ -17,10 +17,8 @@ def init_rsa(tmp_path: pathlib.Path, configuration: Any) -> JWTConfiguration:
     public_key_file = tmp_path / 'public.key'
     subprocess.run(['openssl', 'genrsa', '-out', private_key_file, '2048'], check=True, capture_output=True)
     subprocess.run(['openssl', 'rsa', '-pubout', '-in', private_key_file, '-out', public_key_file], check=True, capture_output=True)
-    with open(private_key_file) as f:
-        private_key = f.read()
-    with open(public_key_file) as f:
-        public_key = f.read()
+    private_key = pathlib.Path(private_key_file).read_text()
+    public_key = pathlib.Path(public_key_file).read_text()
     server_configuration = {
         'type': 'RS512',
         'key': public_key,
@@ -41,10 +39,8 @@ def init_ed25519(tmp_path: pathlib.Path, configuration: Any) -> JWTConfiguration
     public_key_file = tmp_path / 'public.key'
     subprocess.run(['openssl', 'genpkey', '-algorithm', 'ed25519', '-outform', 'PEM', '-out', private_key_file], check=True, capture_output=True)
     subprocess.run(['openssl', 'pkey', '-pubout', '-in', private_key_file, '-out', public_key_file], check=True, capture_output=True)
-    with open(private_key_file) as f:
-        private_key = f.read()
-    with open(public_key_file) as f:
-        public_key = f.read()
+    private_key = pathlib.Path(private_key_file).read_text()
+    public_key = pathlib.Path(public_key_file).read_text()
     server_configuration = {
         'type': 'Ed25519',
         'key': public_key,
@@ -64,10 +60,8 @@ def init_es256(tmp_path: pathlib.Path, configuration: Any) -> JWTConfiguration:
     public_key_file = tmp_path / 'public.key'
     subprocess.run(['openssl', 'ecparam', '-name', 'prime256v1', '-genkey', '-noout', '-out', private_key_file], check=True, capture_output=True)
     subprocess.run(['openssl', 'ec', '-in', private_key_file, '-pubout', '-out', public_key_file], check=True, capture_output=True)
-    with open(private_key_file) as f:
-        private_key = f.read()
-    with open(public_key_file) as f:
-        public_key = f.read()
+    private_key = pathlib.Path(private_key_file).read_text()
+    public_key = pathlib.Path(public_key_file).read_text()
     server_configuration = {
         'type': 'ES256',
         'key': public_key,

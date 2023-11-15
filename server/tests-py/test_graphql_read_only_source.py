@@ -21,14 +21,14 @@ class TestGraphQLOnReadOnlySource:
     setup_metadata_api_version = 'v2'
 
     def test_query_aves(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/select_query_aves.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/select_query_aves.yaml', transport)
 
     # graphql-engine's websocket response is different than in http on execution
     # errors; so this test is run only on http
     def test_mutation_aves(self, hge_ctx, transport):
         if transport != 'http':
             pytest.skip('This test should only run over HTTP.')
-        check_query_f(hge_ctx, self.dir() + '/update_query_aves.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/update_query_aves.yaml', transport)
 
 
 # As this is a read-only test, we can't create the schema/tables as part of the

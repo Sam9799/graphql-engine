@@ -2,7 +2,7 @@ import pytest
 from context import PytestConf
 
 def url(hge_ctx):
-    return hge_ctx.hge_url + '/v1/version'
+    return f'{hge_ctx.hge_url}/v1/version'
 
 @pytest.mark.hge_env('HASURA_GRAPHQL_CORS_DOMAIN', 'http://*.localhost, http://localhost:3000, https://*.foo.bar.com')
 class TestCors():

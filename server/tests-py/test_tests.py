@@ -381,9 +381,7 @@ def fixture_returning_mark(request: pytest.FixtureRequest) -> Any:
 
 @pytest.fixture(scope='class')
 def fixture_returning_indirect_param(request: pytest.FixtureRequest) -> Any:
-    if 'param' not in dir(request):
-        return None
-    return request.param
+    return None if 'param' not in dir(request) else request.param
 
 
 @pytest.fixture(scope='class')

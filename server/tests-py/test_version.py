@@ -6,9 +6,7 @@ import re
 class TestServerVersion(object):
 
     def test_version(self, hge_ctx):
-        resp = hge_ctx.http.get(
-            hge_ctx.hge_url + '/v1/version'
-        )
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1/version')
         assert resp.status_code == 200, resp
         version_json = resp.json()
         assert isinstance(version_json, dict), version_json

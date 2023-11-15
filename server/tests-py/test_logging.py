@@ -38,15 +38,16 @@ class TestLogging:
     @pytest.fixture(scope='class', autouse=True)
     def make_requests(self, hge_ctx):
         # setup some tables
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
 
         # make a successful query
         q = self.success_query
         headers = {'x-request-id': 'successful-query-log-test'}
         if hge_ctx.hge_key:
             headers['x-hasura-admin-secret'] = hge_ctx.hge_key
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/graphql', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/graphql', json=q, headers=headers
+        )
         assert resp.status_code == 200 and 'data' in resp.json()
 
         # make a query where JSON body parsing fails
@@ -54,15 +55,17 @@ class TestLogging:
         headers = {'x-request-id': 'json-parse-fail-log-test'}
         if hge_ctx.hge_key:
             headers['x-hasura-admin-secret'] = hge_ctx.hge_key
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/graphql', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/graphql', json=q, headers=headers
+        )
         assert resp.status_code == 200 and 'errors' in resp.json()
 
         # make an unauthorized query where admin secret/access token is empty
         q = {'query': 'query { hello {code name} }'}
         headers = {'x-request-id': 'unauthorized-query-test'}
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/graphql', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/graphql', json=q, headers=headers
+        )
         assert resp.status_code == 200 and 'errors' in resp.json()
 
         # make an unauthorized metadata request where admin secret/access token is empty
@@ -80,8 +83,9 @@ class TestLogging:
             }
         }
         headers = {'x-request-id': 'unauthorized-metadata-test'}
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/query', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/query', json=q, headers=headers
+        )
         assert resp.status_code == 401 and 'error' in resp.json()
 
     @pytest.fixture(scope='class')
@@ -132,7 +136,7 @@ class TestLogging:
         print('all logs gathered', logs_from_requests)
         http_logs = list(filter(_get_http_logs, logs_from_requests))
         print('http logs', http_logs)
-        assert len(http_logs) > 0
+        assert http_logs
         for http_log in http_logs:
             print(http_log)
 
@@ -157,7 +161,7 @@ class TestLogging:
             return x['type'] == 'query-log'
 
         query_logs = list(filter(_get_query_logs, logs_from_requests))
-        assert len(query_logs) > 0
+        assert query_logs
         onelog = query_logs[0]['detail']
         assert 'request_id' in onelog
         assert 'query' in onelog
@@ -167,11 +171,11 @@ class TestLogging:
     def test_http_parse_failed_log(self, logs_from_requests):
         def _get_parse_failed_logs(x):
             return x['type'] == 'http-log' and \
-                x['detail']['operation']['request_id'] == 'json-parse-fail-log-test'
+                    x['detail']['operation']['request_id'] == 'json-parse-fail-log-test'
 
         http_logs = list(filter(_get_parse_failed_logs, logs_from_requests))
         print('parse failed logs', http_logs)
-        assert len(http_logs) > 0
+        assert http_logs
         print(http_logs[0])
         assert 'error' in http_logs[0]['detail']['operation']
         assert http_logs[0]['detail']['operation']['error']['code'] == 'parse-failed'
@@ -179,11 +183,11 @@ class TestLogging:
     def test_http_unauthorized_query(self, logs_from_requests):
         def _get_failed_logs(x):
             return x['type'] == 'http-log' and \
-                x['detail']['operation']['request_id'] == 'unauthorized-query-test'
+                    x['detail']['operation']['request_id'] == 'unauthorized-query-test'
 
         http_logs = list(filter(_get_failed_logs, logs_from_requests))
         print('unauthorized failed logs', http_logs)
-        assert len(http_logs) > 0
+        assert http_logs
         print(http_logs[0])
         assert 'error' in http_logs[0]['detail']['operation']
         assert http_logs[0]['detail']['operation']['error']['code'] == 'access-denied'
@@ -193,11 +197,11 @@ class TestLogging:
     def test_http_unauthorized_metadata(self, logs_from_requests):
         def _get_failed_logs(x):
             return x['type'] == 'http-log' and \
-                x['detail']['operation']['request_id'] == 'unauthorized-metadata-test'
+                    x['detail']['operation']['request_id'] == 'unauthorized-metadata-test'
 
         http_logs = list(filter(_get_failed_logs, logs_from_requests))
         print('unauthorized failed logs', http_logs)
-        assert len(http_logs) > 0
+        assert http_logs
         print(http_logs[0])
         assert 'error' in http_logs[0]['detail']['operation']
         assert http_logs[0]['detail']['operation']['error']['code'] == 'access-denied'
@@ -224,7 +228,7 @@ class TestWebsocketLogging:
     @pytest.fixture(scope='class', autouse=True)
     def make_requests(self, hge_ctx, ws_client):
         # setup some tables
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
 
         # make a successful websocket query
         headers = {'x-request-id': self.query_id}
@@ -252,7 +256,7 @@ class TestWebsocketLogging:
             return x['type'] == 'websocket-log' and x['detail']['event']['type'] == 'operation'
 
         ws_logs = list(filter(_get_websocket_operation_logs, logs_from_requests))
-        assert len(ws_logs) > 0
+        assert ws_logs
         onelog = ws_logs[0]['detail']['event']['detail']
         assert 'request_id' in onelog
         assert 'operation_name' in onelog
@@ -267,7 +271,7 @@ class TestWebsocketLogging:
             return x['type'] == 'ws-server' and 'metadata' in x['detail'] and type(x['detail']) != str
 
         ws_logs = list(filter(_get_ws_server_logs, logs_from_requests))
-        assert len(ws_logs) > 0
+        assert ws_logs
         onelog = ws_logs[0]['detail']
         assert 'operation_id' in onelog['metadata']
         assert 'operation_name' in onelog['metadata']
@@ -281,15 +285,16 @@ class AbstractTestJwkRefreshLog:
     @pytest.fixture(scope='class', autouse=True)
     def make_requests(self, hge_ctx, jwk_server_url):
         # setup some tables
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
 
         # make a successful query
         q = self.success_query
         headers = {'x-request-id': 'successful-query-log-test'}
         if hge_ctx.hge_key:
             headers['x-hasura-admin-secret'] = hge_ctx.hge_key
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/graphql', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/graphql', json=q, headers=headers
+        )
         assert resp.status_code == 200 and 'data' in resp.json()
 
     @pytest.fixture(scope='class')
@@ -303,8 +308,9 @@ class TestJwkRefreshLog(AbstractTestJwkRefreshLog):
     def test_jwk_refresh_log(self, logs_from_requests):
         def _get_jwk_refresh_log(x):
             return x['type'] == 'jwk-refresh-log'
+
         jwk_refresh_logs = list(filter(_get_jwk_refresh_log, logs_from_requests))
-        assert len(jwk_refresh_logs) > 0
+        assert jwk_refresh_logs
 
 
 # Test that the JWK refresh log can be disabled
@@ -313,5 +319,6 @@ class TestNoJwkRefreshLog(AbstractTestJwkRefreshLog):
     def test_jwk_refresh_log(self, logs_from_requests):
         def _get_jwk_refresh_log(x):
             return x['type'] == 'jwk-refresh-log'
+
         jwk_refresh_logs = list(filter(_get_jwk_refresh_log, logs_from_requests))
-        assert len(jwk_refresh_logs) == 0
+        assert not jwk_refresh_logs

@@ -56,7 +56,7 @@ def query_echo_webhook(hge_fixture_env: dict[str, str]):
     thread.start()
     url = f'http://{server.server_address[0]}:{server.server_address[1]}'
     print(f'{query_echo_webhook.__name__} server started on {url}')
-    hge_fixture_env['HASURA_GRAPHQL_AUTH_HOOK'] = url + '/'
+    hge_fixture_env['HASURA_GRAPHQL_AUTH_HOOK'] = f'{url}/'
     hge_fixture_env['HASURA_GRAPHQL_AUTH_HOOK_MODE'] = 'POST'
     yield server
     server.shutdown()

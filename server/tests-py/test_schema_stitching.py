@@ -20,15 +20,15 @@ def mk_add_remote_q(name, url, headers=None, client_hdrs=False, timeout=None, cu
         "type": "add_remote_schema",
         "args": {
             "name": name,
-            "comment": "testing " + name,
+            "comment": f"testing {name}",
             "definition": {
                 "url": url,
                 "headers": headers,
                 "forward_client_headers": client_hdrs,
                 "timeout_seconds": timeout,
-                "customization": customization
-            }
-        }
+                "customization": customization,
+            },
+        },
     }
 
 def type_prefix_customization(type_prefix, mapping={}):
@@ -39,15 +39,15 @@ def mk_update_remote_q(name, url, headers=None, client_hdrs=False, timeout=None,
         "type": "update_remote_schema",
         "args": {
             "name": name,
-            "comment": "testing " + name,
+            "comment": f"testing {name}",
             "definition": {
                 "url": url,
                 "headers": headers,
                 "forward_client_headers": client_hdrs,
                 "timeout_seconds": timeout,
-                "customization": customization
-            }
-        }
+                "customization": customization,
+            },
+        },
     }
 
 def mk_delete_remote_q(name):
@@ -134,7 +134,7 @@ class TestRemoteSchemaBasic:
         resp, _ = check_query(hge_ctx, query)
         assert check_introspection_result(resp, ['MyString'], ['my_hello'])
 
-        check_query_f(hge_ctx, self.dir + '/basic_query_customized.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/basic_query_customized.yaml')
 
         """ revert to original config for remote schema """
         q = mk_update_remote_q('simple 1', f'{gql_server.url}/hello-graphql', None, False, 60)
@@ -165,10 +165,10 @@ class TestRemoteSchemaBasic:
         check_query_f(hge_ctx, 'queries/graphql_introspection/introspection_user_role.yaml')
 
     def test_remote_query(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir + '/basic_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/basic_query.yaml')
 
     def test_remote_subscription(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir + '/basic_subscription_not_supported.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/basic_subscription_not_supported.yaml')
 
     def test_add_schema_conflicts(self, hge_ctx, gql_server):
         """add 2 remote schemas with same node or types"""
@@ -197,76 +197,101 @@ class TestRemoteSchemaBasic:
     def test_json_scalar_dict(self, hge_ctx, gql_server):
         q = mk_add_remote_q('my remote', f'{gql_server.url}/json-scalar-graphql')
         hge_ctx.v1q(q)
-        check_query_f(hge_ctx, self.dir + '/json_scalar.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/json_scalar.yaml')
         hge_ctx.v1q(mk_delete_remote_q('my remote'))
 
     def test_add_remote_schema_with_interfaces(self, hge_ctx, gql_server):
         """add a remote schema with interfaces in it"""
         q = mk_add_remote_q('my remote interface one', f'{gql_server.url}/character-iface-graphql')
         hge_ctx.v1q(q)
-        check_query_f(hge_ctx, self.dir + '/character_interface_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/character_interface_query.yaml')
         hge_ctx.v1q(mk_delete_remote_q('my remote interface one'))
 
     def test_add_remote_schema_with_interface_err_empty_fields_list(self, hge_ctx):
         """add a remote schema with an interface having no fields"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_iface_err_empty_fields_list.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_iface_err_empty_fields_list.yaml',
+        )
 
     def test_add_remote_schema_err_unknown_interface(self, hge_ctx):
         """add a remote schema with an interface having no fields"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_err_unknown_interface.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir}/add_remote_schema_err_unknown_interface.yaml'
+        )
 
     def test_add_remote_schema_with_interface_err_missing_field(self, hge_ctx):
         """ add a remote schema where an object implementing an interface does
         not have a field defined in the interface """
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_err_missing_field.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/add_remote_schema_err_missing_field.yaml')
 
     def test_add_remote_schema_with_interface_err_wrong_field_type(self, hge_ctx):
         """add a remote schema where an object implementing an interface have a
         field with the same name as in the interface, but of different type"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_iface_err_wrong_field_type.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_iface_err_wrong_field_type.yaml',
+        )
 
     def test_add_remote_schema_with_interface_err_missing_arg(self, hge_ctx):
         """add a remote schema where a field of an object implementing an
         interface does not have the argument defined in the same field of
         interface"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_err_missing_arg.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/add_remote_schema_err_missing_arg.yaml')
 
     def test_add_remote_schema_with_interface_err_wrong_arg_type(self, hge_ctx):
         """add a remote schema where the argument of a field of an object
         implementing the interface does not have the same type as the argument
         defined in the field of interface"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_iface_err_wrong_arg_type.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir}/add_remote_schema_iface_err_wrong_arg_type.yaml'
+        )
 
     def test_add_remote_schema_with_interface_err_extra_non_null_arg(self, hge_ctx):
         """add a remote schema with a field of an object implementing interface
         having extra non_null argument"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_iface_err_extra_non_null_arg.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_iface_err_extra_non_null_arg.yaml',
+        )
 
     def test_add_remote_schema_with_union(self, hge_ctx, gql_server):
         """add a remote schema with union in it"""
         q = mk_add_remote_q('my remote union one', f'{gql_server.url}/union-graphql')
         hge_ctx.v1q(q)
-        check_query_f(hge_ctx, self.dir + '/search_union_type_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/search_union_type_query.yaml')
         hge_ctx.v1q({"type": "remove_remote_schema", "args": {"name": "my remote union one"}})
 
     def test_add_remote_schema_with_union_err_no_member_types(self, hge_ctx):
         """add a remote schema with a union having no member types"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_union_err_no_member_types.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_union_err_no_member_types.yaml',
+        )
 
     def test_add_remote_schema_with_union_err_unkown_types(self, hge_ctx):
         """add a remote schema with a union having unknown types as memberTypes"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_union_err_unknown_types.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_union_err_unknown_types.yaml',
+        )
 
     def test_add_remote_schema_with_union_err_subtype_iface(self, hge_ctx):
         """add a remote schema with a union having interface as a memberType"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_union_err_member_type_interface.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_union_err_member_type_interface.yaml',
+        )
 
     def test_add_remote_schema_with_union_err_wrapped_type(self, hge_ctx):
         """add a remote schema with error in spec for union"""
-        check_query_f(hge_ctx, self.dir + '/add_remote_schema_with_union_err_wrapped_type.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir}/add_remote_schema_with_union_err_wrapped_type.yaml',
+        )
 
     def test_bulk_remove_add_remote_schema(self, hge_ctx):
-        hge_ctx.v1q_f(self.dir + '/basic_bulk_remove_add.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/basic_bulk_remove_add.yaml')
 
 class TestRemoteSchemaBasicExtensions:
     """ basic => no hasura tables are tracked """
@@ -282,7 +307,7 @@ class TestRemoteSchemaBasicExtensions:
         hge_ctx.v1q(self.teardown)
 
     def test_remote_query(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir + '/basic_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/basic_query.yaml')
 
 
 class TestAddRemoteSchemaTbls:
@@ -314,16 +339,18 @@ class TestAddRemoteSchemaTbls:
         hge_ctx.v1q({"type": "remove_remote_schema", "args": {"name": "my remote2"}})
 
     def test_remote_query(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir + '/simple2_query.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/simple2_query.yaml')
 
     def test_remote_mutation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir + '/simple2_mutation.yaml')
+        check_query_f(hge_ctx, f'{self.dir}/simple2_mutation.yaml')
 
     def test_add_conflicting_table(self, hge_ctx):
-        resp = hge_ctx.v1q_f(self.dir + '/create_conflicting_table.yaml', expected_status_code = 400)
+        resp = hge_ctx.v1q_f(
+            f'{self.dir}/create_conflicting_table.yaml', expected_status_code=400
+        )
         assert resp['code'] == 'remote-schema-conflicts'
         # Drop "user" table which is created in the previous test
-        hge_ctx.v1q_f(self.dir + '/drop_user_table.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/drop_user_table.yaml')
 
     def test_introspection(self, hge_ctx):
         with open('queries/graphql_introspection/introspection.yaml') as f:
@@ -341,11 +368,11 @@ class TestAddRemoteSchemaTbls:
         test types get merged when remote schema has type with same name and
         same structure + a same custom scalar
         """
-        hge_ctx.v1q_f(self.dir + '/person_table.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/person_table.yaml')
         q = mk_add_remote_q('person-graphql', f'{gql_server.url}/person-graphql')
 
         hge_ctx.v1q(q)
-        hge_ctx.v1q_f(self.dir + '/drop_person_table.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/drop_person_table.yaml')
         hge_ctx.v1q({"type": "remove_remote_schema", "args": {"name": "person-graphql"}})
 
     def test_remote_schema_forward_headers(self, hge_ctx, gql_server):
@@ -371,8 +398,9 @@ class TestAddRemoteSchemaTbls:
         if hge_ctx.hge_key:
             hdrs['x-hasura-admin-secret'] = hge_ctx.hge_key
 
-        resp = hge_ctx.http.post(hge_ctx.hge_url+'/v1alpha1/graphql', json=q,
-                                 headers=hdrs)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1alpha1/graphql', json=q, headers=hdrs
+        )
         print(resp.status_code, resp.json())
         assert resp.status_code == 200
         res = resp.json()
@@ -471,12 +499,11 @@ class TestRemoteSchemaResponseHeaders():
         hge_ctx.v1q(self.teardown)
 
     def test_response_headers_from_remote(self, hge_ctx):
-        headers = {}
-        if hge_ctx.hge_key:
-            headers = {'x-hasura-admin-secret': hge_ctx.hge_key}
+        headers = {'x-hasura-admin-secret': hge_ctx.hge_key} if hge_ctx.hge_key else {}
         q = {'query': 'query { hello (arg: "me") }'}
-        resp = hge_ctx.http.post(hge_ctx.hge_url + '/v1/graphql', json=q,
-                                 headers=headers)
+        resp = hge_ctx.http.post(
+            f'{hge_ctx.hge_url}/v1/graphql', json=q, headers=headers
+        )
         assert resp.status_code == 200
         assert ('Set-Cookie' in resp.headers and
                 resp.headers['Set-Cookie'] == 'abcd')
@@ -524,7 +551,7 @@ class TestRemoteSchemaTimeout:
         hge_ctx.v1q(self.teardown)
 
     def test_remote_query_timeout(self, hge_ctx):
-        with open(self.dir + '/basic_timeout_query.yaml') as f:
+        with open(f'{self.dir}/basic_timeout_query.yaml') as f:
             query = yaml.load(f)
         resp, _ = check_query(hge_ctx, query)
 
@@ -567,17 +594,8 @@ def check_introspection_result(res, types, node_names):
     all_nodes = _map(lambda f: f['name'], q_root['fields'])
     print(all_nodes)
 
-    satisfy_ty = True
-    satisfy_node = True
-
-    for ty_name in types:
-        if ty_name not in all_types:
-            satisfy_ty = False
-
-    for nn in node_names:
-        if nn not in all_nodes:
-            satisfy_node = False
-
+    satisfy_ty = all(ty_name in all_types for ty_name in types)
+    satisfy_node = all(nn in all_nodes for nn in node_names)
     return satisfy_node and satisfy_ty
 
 def get_fld_by_name(ty, fldName):
@@ -587,11 +605,13 @@ def get_arg_by_name(fld, argName):
     return _filter(lambda a: a['name'] == argName, fld['args'])
 
 def compare_args(arg_path, argH, argR):
-    assert argR['type'] == argH['type'], yaml.dump({
-        'error' : 'Types do not match for arg ' + arg_path,
-        'remote_type' : argR['type'],
-        'hasura_type' : argH['type']
-    })
+    assert argR['type'] == argH['type'], yaml.dump(
+        {
+            'error': f'Types do not match for arg {arg_path}',
+            'remote_type': argR['type'],
+            'hasura_type': argH['type'],
+        }
+    )
     compare_default_value(argR['defaultValue'], argH['defaultValue'])
 
 # There doesn't seem to be any Python code that can correctly compare GraphQL
@@ -619,7 +639,9 @@ def compare_flds(fldH, fldR):
         for argH in get_arg_by_name(fldH, argR['name']):
             has_arg[arg_path] = True
             compare_args(arg_path, argH, argR)
-        assert has_arg[arg_path], 'Argument ' + arg_path + ' in the remote schema root query type not found in Hasura schema'
+        assert has_arg[
+            arg_path
+        ], f'Argument {arg_path} in the remote schema root query type not found in Hasura schema'
 
 reload_metadata_q = {
     'type': 'reload_metadata',
@@ -665,12 +687,12 @@ class TestValidateRemoteSchemaQuery:
     def test_remote_schema_argument_validation(self, hge_ctx):
         """ test to check that the graphql-engine throws an validation error
             when an remote object is queried with an unknown argument  """
-        check_query_f(hge_ctx, self.dir() + '/argument_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/argument_validation.yaml')
 
     def test_remote_schema_field_validation(self, hge_ctx):
         """ test to check that the graphql-engine throws an validation error
             when an remote object is queried with an unknown field  """
-        check_query_f(hge_ctx, self.dir() + '/field_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/field_validation.yaml')
 
 class TestRemoteSchemaTypePrefix:
     """ basic => no hasura tables are tracked """
@@ -714,7 +736,7 @@ class TestValidateRemoteSchemaTypePrefixQuery:
         return "queries/remote_schemas/validation/"
 
     def test_remote_schema_type_prefix_validation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/type_prefix_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/type_prefix_validation.yaml')
 
 class TestValidateRemoteSchemaFieldPrefixQuery:
 
@@ -733,7 +755,7 @@ class TestValidateRemoteSchemaFieldPrefixQuery:
         return "queries/remote_schemas/validation/"
 
     def test_remote_schema_field_prefix_validation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/field_prefix_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/field_prefix_validation.yaml')
 
 class TestValidateRemoteSchemaCustomization:
     @classmethod
@@ -741,7 +763,7 @@ class TestValidateRemoteSchemaCustomization:
         return "queries/remote_schemas/validation/"
 
     def test_remote_schema_interface_field_validation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/interface_field_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/interface_field_validation.yaml')
 
 class TestValidateRemoteSchemaNamespaceQuery:
 
@@ -760,10 +782,12 @@ class TestValidateRemoteSchemaNamespaceQuery:
         return "queries/remote_schemas/validation/"
 
     def test_remote_schema_namespace_validation(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/namespace_validation.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/namespace_validation.yaml')
 
     def test_multiple_remote_schema_with_namespace(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/multiple_remote_schema_with_namespace.yaml')
+        check_query_f(
+            hge_ctx, f'{self.dir()}/multiple_remote_schema_with_namespace.yaml'
+        )
 
 class TestValidateRemoteSchemaCustomizeAllTheThings:
 
@@ -791,7 +815,7 @@ class TestValidateRemoteSchemaCustomizeAllTheThings:
         return "queries/remote_schemas/validation/"
 
     def test_remote_schema_customize_all_the_things(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/customize_all_the_things.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/customize_all_the_things.yaml')
 
 class TestRemoteSchemaRequestPayload:
     dir = 'queries/remote_schemas'

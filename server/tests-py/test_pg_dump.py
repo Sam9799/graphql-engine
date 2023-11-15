@@ -6,7 +6,7 @@ yaml=YAML(typ='safe', pure=True)
 @pytest.mark.usefixtures('per_method_tests_db_state')
 class TestPGDump:
     def test_pg_dump_for_public_schema(self, hge_ctx):
-        query_file = self.dir() + '/pg_dump_public.yaml'
+        query_file = f'{self.dir()}/pg_dump_public.yaml'
         with open(query_file, 'r') as stream:
             q = yaml.load(stream)
             headers = q['headers'] or {}
@@ -18,7 +18,7 @@ class TestPGDump:
             assert body == q['expected_response'], f'Response body: {body}'
 
     def test_pg_dump_for_public_schema_for_user_role(self, hge_ctx):
-        query_file = self.dir() + '/pg_dump_public.yaml'
+        query_file = f'{self.dir()}/pg_dump_public.yaml'
         with open(query_file, 'r') as stream:
             q = yaml.load(stream)
             headers = q['headers'] or {}

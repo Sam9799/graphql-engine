@@ -77,7 +77,7 @@ class TestScheduledEvent(object):
         resp = hge_ctx.v1q(query)
         assert len(resp) == 3, resp
         # ensuring that valid event_id is returned for all requests
-        assert all(['event_id' in r for r in resp]), resp
+        assert all('event_id' in r for r in resp), resp
 
         # Here we check the three requests received by the webhook.
         # Collect the three generated events (they may arrive out of order):
@@ -171,10 +171,8 @@ class TestCronTrigger(object):
     def test_update_existing_cron_trigger(self ,hge_ctx, metadata_schema_url, scheduled_triggers_evts_webhook):
         metadata_engine = sqlalchemy.engine.create_engine(metadata_schema_url)
 
-        expected_scheduled_timestamps = []
         iter = croniter(self.cron_schedule,datetime.utcnow())
-        for _ in range(100):
-            expected_scheduled_timestamps.append(iter.next(datetime))
+        expected_scheduled_timestamps = [iter.next(datetime) for _ in range(100)]
         q = {
             "type": "create_cron_trigger",
             "args": {
@@ -395,6 +393,11 @@ class TestCronTrigger(object):
                 where trigger_name = %s
                 order by scheduled_time asc
             '''
-            actual_scheduled_timestamps = list(scheduled_time for (scheduled_time,) in connection.execute(sql, (self.cron_trigger_name,)).fetchall())
+            actual_scheduled_timestamps = [
+                scheduled_time
+                for (scheduled_time,) in connection.execute(
+                    sql, (self.cron_trigger_name,)
+                ).fetchall()
+            ]
 
         assert actual_scheduled_timestamps == expected_scheduled_timestamps

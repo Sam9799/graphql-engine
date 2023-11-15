@@ -9,8 +9,7 @@ from validate import check_query_f
 def make_request(url, query):
     print('Sending request to the local federated server')
     payload = {'query': query}
-    resp = requests.post(url, json=payload)
-    return resp
+    return requests.post(url, json=payload)
 
 @pytest.mark.usefixtures('per_class_tests_db_state')
 @pytest.mark.admin_secret
@@ -86,7 +85,7 @@ class TestApolloFederation:
         assert 'data' in resp.text
 
     def test_apollo_federation_fields(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/root_fields.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/root_fields.yaml')
 
     def test_apollo_federation_entities(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/entities.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/entities.yaml')

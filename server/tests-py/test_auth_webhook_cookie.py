@@ -22,10 +22,10 @@ class TestWebhookHeaderCookie(object):
             "operationName": "allUsers"
         }
 
-        headers = {}
-
-        headers['cookie'] = "Test"
-        headers['response-set-cookie-1'] = "__Host-id=1; Secure; Path=/; Domain=example.com"
+        headers = {
+            'cookie': "Test",
+            'response-set-cookie-1': "__Host-id=1; Secure; Path=/; Domain=example.com",
+        }
 
         code, resp, respHeaders = hge_ctx.anyq('/v1/graphql', query_obj, headers)
         print("Status Code: ", code)
@@ -50,11 +50,11 @@ class TestWebhookHeaderCookie(object):
             "operationName": "allUsers"
         }
 
-        headers = {}
-
-        headers['cookie'] = "Test"
-        headers['response-set-cookie-1'] = "__Host-id=1; Secure; Path=/; Domain=example1.com"
-        headers['response-set-cookie-2'] = "__Host-id=2; Secure; Path=/; Domain=example2.com"
+        headers = {
+            'cookie': "Test",
+            'response-set-cookie-1': "__Host-id=1; Secure; Path=/; Domain=example1.com",
+            'response-set-cookie-2': "__Host-id=2; Secure; Path=/; Domain=example2.com",
+        }
 
         code, resp, respHeaders = hge_ctx.anyq('/v1/graphql', query_obj, headers)
         print("Status Code: ", code)

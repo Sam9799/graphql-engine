@@ -31,16 +31,14 @@ class ValidateAndAddUser(graphene.Mutation):
         try:
             #fetch min amount
             minAmount = db_session.query(MinAmountModel).one()
-            # check balance
-            if balance >= minAmount.amount:
-                #create user if balance is greater
-                user = UserModel(name=name, balance=balance)
-                db_session.add(user)
-                db_session.commit()
-                db_session.refresh(user)
-                return ValidateAndAddUser(id = user.id, name = user.name, balance=user.balance)
-            else:
-                raise ValueError('balance too low, required atleast ' + str(minAmount.amount))
+            if balance < minAmount.amount:
+                raise ValueError(f'balance too low, required atleast {str(minAmount.amount)}')
+            #create user if balance is greater
+            user = UserModel(name=name, balance=balance)
+            db_session.add(user)
+            db_session.commit()
+            db_session.refresh(user)
+            return ValidateAndAddUser(id = user.id, name = user.name, balance=user.balance)
         except Exception as exc:
             raise exc
 

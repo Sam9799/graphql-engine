@@ -13,46 +13,96 @@ class TestOpenAPISpec:
         return 'queries/openapi'
 
     def test_empty_openapi_json(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_empty.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/openapi_empty.yaml', transport)
 
     def test_endpoint_simple(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_get_endpoint_test_simple.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_get_endpoint_test_simple.yaml',
+            transport,
+        )
 
     def test_endpoint_with_aliases(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_endpoint_with_aliases.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/openapi_endpoint_with_aliases.yaml', transport
+        )
 
     def test_endpoint_with_args(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_post_endpoint_test_with_args.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_post_endpoint_test_with_args.yaml',
+            transport,
+        )
 
     def test_endpoint_with_args_url(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_post_endpoint_test_with_args_url.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_post_endpoint_test_with_args_url.yaml',
+            transport,
+        )
 
     def test_endpoint_with_default_arg(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_post_endpoint_test_with_default_arg.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_post_endpoint_test_with_default_arg.yaml',
+            transport,
+        )
 
     def test_endpoint_with_multiple_methods(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_endpoint_with_multiple_methods.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_endpoint_with_multiple_methods.yaml',
+            transport,
+        )
 
     def test_multiple_endpoints(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_multiple_endpoints_test.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_multiple_endpoints_test.yaml',
+            transport,
+        )
 
     def test_multiple_endpoints_same_path(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_multiple_endpoints_same_path.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_multiple_endpoints_same_path.yaml',
+            transport,
+        )
 
     def test_multiple_endpoints_with_path_segments(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_multiple_endpoints_with_path_segments.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_multiple_endpoints_with_path_segments.yaml',
+            transport,
+        )
 
     def test_endpoint_with_complex_arg(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_get_endpoint_test_complex_arg.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_get_endpoint_test_complex_arg.yaml',
+            transport,
+        )
 
     def test_endpoint_with_complex_args(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_get_endpoint_test_complex_args.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_get_endpoint_test_complex_args.yaml',
+            transport,
+        )
 
     def test_endpoint_with_recursive_arg(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_post_endpoint_test_recursive_arg.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_post_endpoint_test_recursive_arg.yaml',
+            transport,
+        )
 
     def test_duplicate_field_name(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/openapi_get_endpoint_test_duplicate_field_name.yaml', transport)
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}/openapi_get_endpoint_test_duplicate_field_name.yaml',
+            transport,
+        )
 
     def test_inconsistent_schema_openAPI(self, hge_ctx, transport):
         # export metadata and create a backup
@@ -103,7 +153,9 @@ class TestOpenAPISpec:
         )
 
         # check openAPI schema
-        check_query_f(hge_ctx, self.dir() + '/openapi_inconsistent_schema.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/openapi_inconsistent_schema.yaml', transport
+        )
 
         # revert to old metadata
         hge_ctx.v1q(

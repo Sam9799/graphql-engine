@@ -14,29 +14,31 @@ pytestmark = [
 class TestAllowlistQueries:
 
     def test_query_user(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_user.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/query_user.yaml', transport)
 
     def test_query_user_by_pk(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_user_by_pk.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/query_user_by_pk.yaml', transport)
 
     def test_query_user_with_typename(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_user_with_typename.yaml', transport)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/query_user_with_typename.yaml', transport
+        )
 
     def test_query_non_allowlist(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_non_allowlist.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/query_non_allowlist.yaml', transport)
 
     def test_query_user_fragment(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_user_fragment.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/query_user_fragment.yaml', transport)
 
     def test_query_as_admin(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/query_as_admin.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/query_as_admin.yaml', transport)
 
     def test_update_query(self, hge_ctx, transport):
         # test only for http
         if transport != 'http':
             pytest.skip("http-only")
-        check_query_f(hge_ctx, self.dir() + '/update_query.yaml', transport)
-        check_query_f(hge_ctx, self.dir() + '/add_duplicate_query.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/update_query.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/add_duplicate_query.yaml', transport)
 
     @classmethod
     def dir(cls):
@@ -128,7 +130,7 @@ class TestAllowlistMetadata:
         return 'queries/graphql_query/allowlist_role_based'
 
     def test_rename_query_collection(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/rename_query_collection.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/rename_query_collection.yaml')
 
     def test_add_update_drop(self, hge_ctx):
         # Cycle through add_collection_to_allowlist,

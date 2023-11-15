@@ -27,9 +27,7 @@ class Response():
     def get_body(self):
         if not self.body:
             return ''
-        if isinstance(self.body, dict):
-            return json.dumps(self.body)
-        return self.body
+        return json.dumps(self.body) if isinstance(self.body, dict) else self.body
 
 class Request():
     """ Represents a HTTP `Request` object """

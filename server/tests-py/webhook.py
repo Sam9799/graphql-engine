@@ -34,11 +34,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         self.send_response(401)
                         self.end_headers()
                         self.wfile.write(b'{}')
-                except  Exception as e:
+                except Exception as e:
                     print ('forbidden')
                     self.send_response(401)
                     self.end_headers()
-                    print("type error: " + str(e))
+                    print(f"type error: {str(e)}")
                     print(traceback.format_exc())
         else:
             self.send_response(401)

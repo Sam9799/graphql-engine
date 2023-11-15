@@ -26,7 +26,7 @@ class AbstractTestWebhookV2Query(object):
         return 'queries/v2/basic'
 
     def test_v2_query(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + '/select_article.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/select_article.yaml')
 
 @pytest.mark.hge_env('HASURA_GRAPHQL_AUTH_HOOK_MODE', 'GET')
 @pytest.mark.no_tls_webhook_server
@@ -156,6 +156,6 @@ class TestWebhookSubscriptionExpiry(object):
         headers['X-Hasura-Auth-Mode'] = 'webhook'
 
         token = base64.b64encode(json.dumps(headers).encode('utf-8')).decode('utf-8')
-        headers['Authorization'] = 'Bearer ' + token
+        headers['Authorization'] = f'Bearer {token}'
         payload = {'headers': headers}
         init_ws_conn(None, ws_client, payload)

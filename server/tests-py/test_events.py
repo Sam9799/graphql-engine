@@ -73,10 +73,7 @@ def update_mutation(hge_ctx, table, where_exp, set_exp, headers = {}):
     print("--- UPDATE MUTATION QUERY ---- \n", update_mutation_query)
 
     graphql_query = {'query': update_mutation_query}
-    resp = hge_ctx.v1graphqlq(graphql_query, headers = headers)
-
-    #print(" ---- UPDATE MUTATION RESP ----", resp)
-    return resp
+    return hge_ctx.v1graphqlq(graphql_query, headers = headers)
 
 def delete_mutation(hge_ctx, table, where_exp, headers = {}):
     delete_mutation_field = ""
@@ -109,13 +106,16 @@ def delete_mutation(hge_ctx, table, where_exp, headers = {}):
 class TestEventCreateAndDelete:
 
     def test_create_delete(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_and_delete.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/create_and_delete.yaml")
 
     def test_create_reset(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_and_reset.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/create_and_reset.yaml")
 
     def test_create_operation_spec_not_provider_err(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_trigger_operation_specs_not_provided_err.yaml")
+        check_query_f(
+            hge_ctx,
+            f"{self.dir()}/create_trigger_operation_specs_not_provided_err.yaml",
+        )
 
     @classmethod
     def dir(cls):
@@ -143,7 +143,9 @@ class TestEventCreateAndResetNonDefaultSource:
             connection.execute('DROP SCHEMA IF EXISTS hge_tests CASCADE')
 
     def test_create_reset_non_default_source(self, hge_ctx, another_source):
-        check_query_f(hge_ctx, self.dir() + "/create_and_reset_non_default_source.yaml")
+        check_query_f(
+            hge_ctx, f"{self.dir()}/create_and_reset_non_default_source.yaml"
+        )
 
         with another_source.engine.connect() as connection:
             # Check that the event log table exists.
@@ -173,19 +175,22 @@ class TestEventCreateAndResetNonDefaultSource:
 class TestEventCreateAndDeleteMSSQL:
 
     def test_create_delete(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_and_delete_mssql.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/create_and_delete_mssql.yaml")
 
     def test_create_reset(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_and_reset_mssql.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/create_and_reset_mssql.yaml")
 
         table = {"schema": "hge_tests", "name": "test_t1"}
         init_row = {"c1": 1, "c2": "world"}
         insert_mutation(hge_ctx, table, init_row)
 
-        check_query_f(hge_ctx, self.dir() + "/create_and_reset_mssql_2.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/create_and_reset_mssql_2.yaml")
 
     def test_create_operation_spec_not_provider_err(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/create_trigger_operation_specs_not_provided_err_mssql.yaml")
+        check_query_f(
+            hge_ctx,
+            f"{self.dir()}/create_trigger_operation_specs_not_provided_err_mssql.yaml",
+        )
 
     @classmethod
     def dir(cls):
@@ -285,9 +290,8 @@ class TestEventFloodPostgresMSSQL(object):
             # it seems, since webhook can't keep up there:
             ev_full = evts_webhook.get_event(600)
             return ev_full['body']['event']['data']['new']['c1']
-        # Make sure we got all payloads (probably out of order):
-        ns = list(map(lambda _: get_evt(), payload))
-        ns.sort()
+
+        ns = sorted(map(lambda _: get_evt(), payload))
         assert ns == list(payload)
 
 @usefixtures('postgis', 'per_class_tests_db_state')
@@ -396,7 +400,7 @@ class TestEventDataFormatGeoJSONMSSQL(object):
         return 'queries/event_triggers/data_format/mssql/geojson'
 
     def test_geojson(self, hge_ctx, evts_webhook):
-      check_query_f(hge_ctx, self.dir() + '/create_geojson_event_trigger.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/create_geojson_event_trigger.yaml')
 
 @pytest.mark.backend('mssql','postgres')
 @usefixtures("per_class_tests_db_state")
@@ -463,7 +467,7 @@ class TestCreateEventQueryPostgres(object):
         return 'queries/event_triggers/basic'
 
     def test_partitioned_table_basic_insert(self, hge_ctx, evts_webhook):
-        hge_ctx.v1q_f(self.dir() + '/partition_table_setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir()}/partition_table_setup.yaml')
         table = { "schema":"hge_tests", "name": "measurement"}
 
         init_row = { "city_id": 1, "logdate": "2006-02-02", "peaktemp": 1, "unitsales": 1}
@@ -474,7 +478,7 @@ class TestCreateEventQueryPostgres(object):
         }
         insert(hge_ctx, table, init_row)
         check_event(hge_ctx, evts_webhook, "measurement_all", table, "INSERT", exp_ev_data)
-        hge_ctx.v1q_f(self.dir() + '/partition_table_teardown.yaml')
+        hge_ctx.v1q_f(f'{self.dir()}/partition_table_teardown.yaml')
 
 @pytest.mark.backend('mssql','postgres')
 @usefixtures('per_method_tests_db_state')
@@ -594,17 +598,17 @@ class TestUpdateEventQuery(object):
         #     columns: '*'
         #   update:
         #     columns: [c2, c3]
-        resp = hge_ctx.v1q_f(self.dir() + '/create-setup.yaml')
+        resp = hge_ctx.v1q_f(f'{self.dir()}/create-setup.yaml')
 
         # overwrites trigger added above, with...
         #   delete:
         #     columns: "*"
         #   update:
         #     columns: ["c1", "c3"]
-        resp = hge_ctx.v1q_f(self.dir() + '/update-setup.yaml')
+        resp = hge_ctx.v1q_f(f'{self.dir()}/update-setup.yaml')
         assert resp[1]["sources"][0]["tables"][0]["event_triggers"][0]["webhook"] == '{{EVENT_WEBHOOK_HANDLER}}/new'
         yield
-        resp = hge_ctx.v1q_f(self.dir() + '/teardown.yaml')
+        resp = hge_ctx.v1q_f(f'{self.dir()}/teardown.yaml')
 
     def test_update_basic(self, hge_ctx, evts_webhook):
         table = {"schema": "hge_tests", "name": "test_t1"}
@@ -666,8 +670,8 @@ class TestUpdateEventQueryMSSQL(object):
         #     columns: '*'
         #   update:
         #     columns: ["c3", "c4"]
-        hge_ctx.v2q_f(self.dir() + '/schema-setup-mssql.yaml')
-        hge_ctx.v1metadataq_f(self.dir() + '/create-setup-mssql.yaml')
+        hge_ctx.v2q_f(f'{self.dir()}/schema-setup-mssql.yaml')
+        hge_ctx.v1metadataq_f(f'{self.dir()}/create-setup-mssql.yaml')
 
         # overwrites trigger added above, with...
         #   delete:
@@ -675,7 +679,7 @@ class TestUpdateEventQueryMSSQL(object):
         #   update:
         #     columns: ["c1", "c2", "c4"]
 
-        resp = hge_ctx.v1metadataq_f(self.dir() + '/update-setup-mssql.yaml')
+        resp = hge_ctx.v1metadataq_f(f'{self.dir()}/update-setup-mssql.yaml')
         sources = resp[1]["sources"]
         for source in sources:
             if source["name"] == "mssql":
@@ -683,7 +687,7 @@ class TestUpdateEventQueryMSSQL(object):
 
         yield
         print("--- TEARDOWN STARTED -----")
-        resp = hge_ctx.v2q_f(self.dir() + '/teardown-mssql.yaml')
+        resp = hge_ctx.v2q_f(f'{self.dir()}/teardown-mssql.yaml')
 
     def test_update_basic(self, hge_ctx, evts_webhook):
         table = {"schema": "hge_tests", "name": "test_t1"}
@@ -1647,7 +1651,7 @@ class TestEventTransform(object):
 
     def test_basic(self, hge_ctx, evts_webhook):
         # GIVEN
-        check_query_f(hge_ctx, self.dir() + '/basic_transform.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/basic_transform.yaml')
 
         # WHEN
         table = {"schema": "hge_tests", "name": "test_t1"}
@@ -1675,7 +1679,7 @@ class TestEventTransformMSSQL(object):
 
     def test_basic(self, hge_ctx, evts_webhook):
         # GIVEN
-        check_query_f(hge_ctx, self.dir() + '/basic_transform_mssql.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}/basic_transform_mssql.yaml')
 
         # WHEN
         table = {"schema": "hge_tests", "name": "test_t1"}

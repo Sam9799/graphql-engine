@@ -128,7 +128,7 @@ class GQLWsClient():
             self.init(headers)
         elif not self.init_done:
             self.init()
-        if query_id == None:
+        if query_id is None:
             query_id = self.gen_id()
         frame = {
             'id': query_id,
@@ -153,7 +153,7 @@ class GQLWsClient():
             if json_msg.get('type') == 'stop':
                 #Remove from active queries list
                 self.ws_active_query_ids.discard( query_id )
-            if not query_id in self.ws_id_query_queues:
+            if query_id not in self.ws_id_query_queues:
                 self.ws_id_query_queues[json_msg['id']] = queue.Queue(maxsize=-1)
             #Put event in the correponding query_queue
             self.ws_id_query_queues[query_id].put(json_msg)
@@ -268,7 +268,7 @@ class GraphQLWSClient():
             self.init(headers)
         elif not self.init_done:
             self.init()
-        if query_id == None:
+        if query_id is None:
             query_id = self.gen_id()
         frame = {
             'id': query_id,
@@ -302,7 +302,7 @@ class GraphQLWSClient():
             if json_msg.get('type') == 'complete':
                 #Remove from active queries list
                 self.ws_active_query_ids.discard( query_id )
-            if not query_id in self.ws_id_query_queues:
+            if query_id not in self.ws_id_query_queues:
                 self.ws_id_query_queues[json_msg['id']] = queue.Queue(maxsize=-1)
             #Put event in the correponding query_queue
             self.ws_id_query_queues[query_id].put(json_msg)
@@ -343,6 +343,10 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
             resp, status = self.create_user()
             self._send_response(status, resp)
 
+        elif req_path == "/create-user-nested":
+            resp, status = self.create_user_nested()
+            self._send_response(status, resp)
+
         elif req_path == "/create-user-timeout":
             time.sleep(3)
             resp, status = self.create_user()
@@ -352,16 +356,12 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
             resp, status = self.create_users()
             self._send_response(status, resp)
 
-        elif req_path == "/create-user-nested":
-            resp, status = self.create_user_nested()
+        elif req_path == "/custom-scalar-array-response":
+            resp, status = self.custom_scalar_array_response()
             self._send_response(status, resp)
 
-        elif req_path == "/mirror-action":
-            resp, status = self.mirror_action()
-            self._send_response(status, resp)
-
-        elif req_path == "/mirror-headers":
-            resp, status = self.mirror_headers()
+        elif req_path == "/get-results":
+            resp, status = self.get_results()
             self._send_response(status, resp)
 
         elif req_path == "/get-user-by-email":
@@ -380,41 +380,45 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
             resp, status = self.get_users_by_email_nested(False)
             self._send_response(status, resp)
 
+        elif req_path == "/get_messages":
+            resp, status = self.get_messages()
+            self._send_response(status, resp)
+
         elif req_path == "/intentional-error":
             resp, status = self.intentional_error()
+            self._send_response(status, resp)
+
+        elif req_path == "/json-response":
+            resp, status = self.json_response()
+            self._send_response(status, resp)
+
+        elif req_path == "/mirror-action":
+            resp, status = self.mirror_action()
+            self._send_response(status, resp)
+
+        elif req_path == "/mirror-headers":
+            resp, status = self.mirror_headers()
             self._send_response(status, resp)
 
         elif req_path == "/null-response":
             resp, status = self.null_response()
             self._send_response(status, resp)
-        
+
         elif req_path == "/omitted-response-field":
             self._send_response(
                 HTTPStatus.OK,
                 self.get_omitted_response_field()
             )
 
-        elif req_path == "/scalar-response":
-            self._send_response(HTTPStatus.OK, "some-string")
-
-        elif req_path == "/json-response":
-            resp, status = self.json_response()
-            self._send_response(status, resp)
-
-        elif req_path == "/custom-scalar-array-response":
-            resp, status = self.custom_scalar_array_response()
+        elif req_path == "/recursive-output":
+            resp, status = self.recursive_output()
             self._send_response(status, resp)
 
         elif req_path == "/scalar-array-response":
             self._send_response(HTTPStatus.OK, ["foo", "bar", None])
 
-        elif req_path == "/recursive-output":
-            resp, status = self.recursive_output()
-            self._send_response(status, resp)
-
-        elif req_path == "/get-results":
-            resp, status = self.get_results()
-            self._send_response(status, resp)
+        elif req_path == "/scalar-response":
+            self._send_response(HTTPStatus.OK, "some-string")
 
         elif req_path == "/typed-nested-null":
             self._send_response(
@@ -427,10 +431,6 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 self.get_typed_nested_null_wrong_field()
             )
-
-        elif req_path == "/get_messages":
-            resp, status = self.get_messages()
-            self._send_response(status, resp)
 
         else:
             self.send_response(HTTPStatus.NO_CONTENT)
@@ -483,8 +483,8 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
             email_address = input['email']
             if not self.check_email(email_address):
                 response = {
-                    'message': 'Email address is not valid: ' + email_address,
-                    'code': 'invalid-email'
+                    'message': f'Email address is not valid: {email_address}',
+                    'code': 'invalid-email',
                 }
                 return response, HTTPStatus.BAD_REQUEST
 
@@ -674,10 +674,7 @@ class ActionsWebhookHandler(http.server.BaseHTTPRequestHandler):
         if admin_secret is not None:
             headers['X-Hasura-Admin-Secret'] = admin_secret
         resp = requests.post(
-            self.hge_url + '/v1/graphql',
-            json=query,
-            headers=headers,
-            timeout=60,
+            f'{self.hge_url}/v1/graphql', json=query, headers=headers, timeout=60
         )
         data = resp.json(object_pairs_hook=OrderedDict)
         self.log_message(json.dumps(data))
@@ -719,14 +716,9 @@ class EvtsWebhookHandler(http.server.BaseHTTPRequestHandler):
         self.log_message(json.dumps(req_json))
         if req_path == "/fail":
             self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
-            self.end_headers()
-        # This endpoint just sleeps for 2 seconds:
         elif req_path == "/sleep_2s":
             time.sleep(2)
             self.send_response(HTTPStatus.NO_CONTENT)
-            self.end_headers()
-        # This is like a sleep endpoint above, but allowing us to decide
-        # externally when the webhook can return, with unblock()
         elif req_path == "/block":
             if not self.server.unblocked:
                 self.server.blocked_count += 1
@@ -736,11 +728,9 @@ class EvtsWebhookHandler(http.server.BaseHTTPRequestHandler):
                     self.server.unblocked_wait.wait(timeout=60)
                 self.server.blocked_count -= 1
             self.send_response(HTTPStatus.NO_CONTENT)
-            self.end_headers()
         else:
             self.send_response(HTTPStatus.NO_CONTENT)
-            self.end_headers()
-
+        self.end_headers()
         self.server.resp_queue.put({"path": req_path,
                                     "body": req_json,
                                     "headers": req_headers})
@@ -863,8 +853,7 @@ class HGECtx:
         self.default_backend = 'postgres'
         self.is_default_backend = self.backend == self.default_backend
 
-        env_version = os.getenv('VERSION')
-        if env_version:
+        if env_version := os.getenv('VERSION'):
             self.version = env_version
         else:
             # HGE version
@@ -981,10 +970,7 @@ class HGECtx:
             return self.v2q(yml.load(f), headers, expected_status_code)
 
     def backend_suffix(self, filename):
-        if self.is_default_backend:
-            return filename
-        else:
-            return filename + "_" + self.backend
+        return filename if self.is_default_backend else f"{filename}_{self.backend}"
 
     def v1metadataq(self, q, headers = {}, expected_status_code = 200):
         return self.execute_query(q, "/v1/metadata", headers, expected_status_code)

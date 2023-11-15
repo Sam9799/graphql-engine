@@ -24,9 +24,9 @@ class TestInconsistentObjects():
     }
 
     def test_inconsistent_objects(self, hge_ctx, source_backend):
-        setup = load_yaml(self.dir() + "/setup.yaml")
-        expected_inconsistent_objects = load_yaml(self.dir() + "/expectation.yaml")
-        teardown = load_yaml(self.dir() + "/teardown.yaml")
+        setup = load_yaml(f"{self.dir()}/setup.yaml")
+        expected_inconsistent_objects = load_yaml(f"{self.dir()}/expectation.yaml")
+        teardown = load_yaml(f"{self.dir()}/teardown.yaml")
 
         hge_ctx.v1q(setup)
 
