@@ -14,13 +14,13 @@ def lambda_handler(event, context):
     data = body['event']['data']
 
     if body['table']['name'] == 'notes' and body['event']['op'] == 'INSERT':
-        message = 'New note {} inserted, with data: {}'.format(data['new']['id'], data['new']['note'])
+        message = f"New note {data['new']['id']} inserted, with data: {data['new']['note']}"
 
     elif body['table']['name'] == 'notes' and body['event']['op'] == 'UPDATE':
-        message = 'Note {} updated, with data: {}'.format(data['new']['id'], data['new']['note'])
+        message = f"Note {data['new']['id']} updated, with data: {data['new']['note']}"
 
     elif body['table'] == 'notes' and body['event']['op'] == 'DELETE':
-        message = 'Note {} deleted, with data: {}'.format(data['old']['id'], data['old']['note'])
+        message = f"Note {data['old']['id']} deleted, with data: {data['old']['note']}"
     return {
         "statusCode": 200,
         "body": json.dumps({'message': message})

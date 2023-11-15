@@ -128,8 +128,12 @@ def pytest_configure(config):
         config.pg_url_list = config.getoption('--pg-urls')
         if not config.getoption('--hge-bin') and config.getoption('-n', default=None):
             xdist_threads = config.getoption('-n')
-            assert config.getoption('--hge-bin') or xdist_threads <= len(config.hge_url_list), "Not enough hge_urls specified, Required " + str(xdist_threads) + ", got " + str(len(config.hge_url_list))
-            assert xdist_threads <= len(config.pg_url_list), "Not enough pg_urls specified, Required " + str(xdist_threads) + ", got " + str(len(config.pg_url_list))
+            assert config.getoption('--hge-bin') or xdist_threads <= len(
+                config.hge_url_list
+            ), f"Not enough hge_urls specified, Required {str(xdist_threads)}, got {len(config.hge_url_list)}"
+            assert xdist_threads <= len(
+                config.pg_url_list
+            ), f"Not enough pg_urls specified, Required {str(xdist_threads)}, got {len(config.pg_url_list)}"
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_configure_node(node):
@@ -147,7 +151,11 @@ def run_on_current_backend(request: pytest.FixtureRequest, current_backend: str)
     # Currently, we default all tests to run on Postgres with or without a --backend flag.
     # As our test suite develops, we may consider running backend-agnostic tests on all
     # backends, unless a specific `--backend` flag is passed.
-    desired_backends = set(name for marker in request.node.iter_markers('backend') for name in marker.args) or set(['postgres'])
+    desired_backends = {
+        name
+        for marker in request.node.iter_markers('backend')
+        for name in marker.args
+    } or {'postgres'}
     return current_backend in desired_backends
 
 def per_backend_tests_fixture(request: pytest.FixtureRequest, current_backend: str):
@@ -155,7 +163,11 @@ def per_backend_tests_fixture(request: pytest.FixtureRequest, current_backend: s
     This fixture ignores backend-specific tests unless the relevant --backend flag has been passed.
     """
     if not run_on_current_backend(request, current_backend):
-        desired_backends = set(name for marker in request.node.iter_markers('backend') for name in marker.args)
+        desired_backends = {
+            name
+            for marker in request.node.iter_markers('backend')
+            for name in marker.args
+        }
         pytest.skip('Skipping test. This test can run on ' + ', '.join(desired_backends) + '.')
 
 @pytest.fixture(scope='class', autouse=True)
@@ -234,7 +246,7 @@ def add_source(
 
             if name == 'pg1':
                 env_var = 'HASURA_GRAPHQL_PG_SOURCE_URL_1'
-            elif name == 'pg2' or name == 'postgres':
+            elif name in {'pg2', 'postgres'}:
                 env_var = 'HASURA_GRAPHQL_PG_SOURCE_URL_2'
             else:
                 raise Exception(f'Cannot add source {name}.')
@@ -296,9 +308,12 @@ def hge_skip(request: pytest.FixtureRequest, hge_server: Optional[Any], hge_fixt
 
     # Ensure that the correct environment variables have been set for the given test.
     hge_marker_env: dict[str, str] = {marker.args[0]: marker.args[1] for marker in request.node.iter_markers('hge_env')}
-    hge_env = {**hge_marker_env, **hge_fixture_env}
-    incorrect_env = {name: value for name, value in hge_env.items() if os.getenv(name) != value}
-    if len(incorrect_env) > 0:
+    hge_env = hge_marker_env | hge_fixture_env
+    if incorrect_env := {
+        name: value
+        for name, value in hge_env.items()
+        if os.getenv(name) != value
+    }:
         pytest.skip(
             'This test expects the following environment variables: '
             + ', '.join([f'{name!r} = {value!r} (not {os.getenv(name)!r})' for name, value in incorrect_env.items()]))
@@ -351,20 +366,17 @@ def hge_key(
     if hge_bin:
         # If the test requests an admin secret, generate one.
         return str(uuid.uuid4()) if marker else None
-    # TODO: remove once parallelization work is completed
-    #       `hge_bin` will no longer be optional
-    else:
-        # If the environment variable is set, use it.
-        # This will be used in the event that we start the server outside the test harness.
-        # We skip the test if it explicitly requires that we have no admin secret.
-        super_marker = request.node.get_closest_marker('requires_an_admin_secret')
-        anti_marker = request.node.get_closest_marker('no_admin_secret')
-        env_key = os.environ.get('HASURA_GRAPHQL_ADMIN_SECRET')
-        if super_marker and not env_key:
-            pytest.skip('This test requires that the admin secret is set.')
-        if anti_marker and env_key:
-            pytest.skip('This test requires that the admin secret is not set.')
-        return env_key
+    # If the environment variable is set, use it.
+    # This will be used in the event that we start the server outside the test harness.
+    # We skip the test if it explicitly requires that we have no admin secret.
+    super_marker = request.node.get_closest_marker('requires_an_admin_secret')
+    anti_marker = request.node.get_closest_marker('no_admin_secret')
+    env_key = os.environ.get('HASURA_GRAPHQL_ADMIN_SECRET')
+    if super_marker and not env_key:
+        pytest.skip('This test requires that the admin secret is set.')
+    if anti_marker and env_key:
+        pytest.skip('This test requires that the admin secret is not set.')
+    return env_key
 
 @pytest.fixture(scope='class')
 def hge_server(
@@ -391,9 +403,7 @@ def enabled_apis(request: pytest.FixtureRequest, hge_bin: Optional[str]) -> Opti
     #       `hge_bin` will no longer be optional
     else:
         enabled_apis_str = os.environ.get('HASURA_GRAPHQL_ENABLED_APIS')
-    if not enabled_apis_str:
-        return None
-    return set(enabled_apis_str.split(','))
+    return None if not enabled_apis_str else set(enabled_apis_str.split(','))
 
 @pytest.fixture(scope='class')
 def hge_ctx_fixture(
@@ -480,7 +490,7 @@ def auth_hook(hge_fixture_env: dict[str, str]):
     thread = threading.Thread(target = server.serve_forever)
     thread.start()
     print(f'{auth_hook.__name__} server started on {server.url}')
-    hge_fixture_env['HASURA_GRAPHQL_AUTH_HOOK'] = server.url + '/auth'
+    hge_fixture_env['HASURA_GRAPHQL_AUTH_HOOK'] = f'{server.url}/auth'
     ports.wait_for_port(server.server_port)
     yield server
     auth_webhook_server.stop_server(server)
@@ -582,9 +592,8 @@ def gql_server(
     if tls_ca_configuration:
         if scheme is not None and scheme != 'https':
             pytest.skip(f'Cannot run the remote schema server with TLS; HGE is configured to talk to it over "{scheme}".')
-    else:
-        if scheme is not None and scheme != 'http':
-            pytest.skip(f'Cannot run the remote schema server without TLS; HGE is configured to talk to it over "{scheme}".')
+    elif scheme is not None and scheme != 'http':
+        pytest.skip(f'Cannot run the remote schema server without TLS; HGE is configured to talk to it over "{scheme}".')
 
     hge_urls: list[str] = request.config.getoption('--hge-urls') or [hge_url]  # type: ignore
 
@@ -657,10 +666,7 @@ def jwk_server_url(request: pytest.FixtureRequest, hge_fixture_env: dict[str, st
     assert path_marker is not None, 'The test must set the `jwk_path` marker.'
     path: str = path_marker.args[0]
 
-    # If the JWK server was started outside, just set the environment variable
-    # so that the test is skipped if the value is wrong.
-    env_var = os.getenv('JWK_SERVER_URL')
-    if env_var:
+    if env_var := os.getenv('JWK_SERVER_URL'):
         hge_fixture_env['HASURA_GRAPHQL_JWT_SECRET'] = '{"jwk_url": "' + env_var + path + '"}'
         return env_var
 
@@ -737,35 +743,44 @@ def per_class_db_schema_for_mutation_tests(request, hge_ctx):
     # setting the default metadata API version to v1
     setup_metadata_api_version = getattr(request.cls, 'setup_metadata_api_version',"v1")
 
-    (setup, teardown, schema_setup, schema_teardown, pre_setup, post_teardown) = [
-        hge_ctx.backend_suffix(filename) + ".yaml"
-        for filename in ['setup', 'teardown', 'schema_setup', 'schema_teardown', 'pre_setup', 'post_teardown']
+    (
+        setup,
+        teardown,
+        schema_setup,
+        schema_teardown,
+        pre_setup,
+        post_teardown,
+    ) = [
+        f"{hge_ctx.backend_suffix(filename)}.yaml"
+        for filename in [
+            'setup',
+            'teardown',
+            'schema_setup',
+            'schema_teardown',
+            'pre_setup',
+            'post_teardown',
+        ]
     ]
 
-    if hge_ctx.is_default_backend:
-        if setup_metadata_api_version == "v1":
-            db_context = db_context_with_schema_common(
-                request, hge_ctx,
-                'schema_setup_files', 'schema_setup.yaml',
-                'schema_teardown_files', 'schema_teardown.yaml',
-            )
-        else:
-            db_context = db_context_with_schema_common_new(
-                request, hge_ctx,
-                'schema_setup_files', setup,
-                'schema_teardown_files', teardown,
-                schema_setup, schema_teardown,
-                pre_setup, post_teardown,
-            )
-    else:
-        db_context = db_context_with_schema_common_new(
-            request, hge_ctx,
-            'schema_setup_files', setup,
-            'schema_teardown_files', teardown,
-            schema_setup, schema_teardown,
-            pre_setup, post_teardown,
-        )
-    yield from db_context
+    yield from db_context_with_schema_common(
+        request,
+        hge_ctx,
+        'schema_setup_files',
+        'schema_setup.yaml',
+        'schema_teardown_files',
+        'schema_teardown.yaml',
+    ) if hge_ctx.is_default_backend and setup_metadata_api_version == "v1" else db_context_with_schema_common_new(
+        request,
+        hge_ctx,
+        'schema_setup_files',
+        setup,
+        'schema_teardown_files',
+        teardown,
+        schema_setup,
+        schema_teardown,
+        pre_setup,
+        post_teardown,
+    )
 
 @pytest.fixture(scope='function')
 def per_method_db_data_for_mutation_tests(request, hge_ctx, per_class_db_schema_for_mutation_tests):
@@ -781,7 +796,7 @@ def per_method_db_data_for_mutation_tests(request, hge_ctx, per_class_db_schema_
     # Non-default (Postgres) backend tests expect separate setup and schema_setup
     # files for v1/metadata and v2/query requests, respectively.
     (values_setup, values_teardown) = [
-        hge_ctx.backend_suffix(filename) + ".yaml"
+        f"{hge_ctx.backend_suffix(filename)}.yaml"
         for filename in ['values_setup', 'values_teardown']
     ]
 
@@ -794,34 +809,40 @@ def per_method_db_data_for_mutation_tests(request, hge_ctx, per_class_db_schema_
 def db_state_context(request, hge_ctx):
     # Non-default (Postgres) backend tests expect separate setup and schema_setup
     # files for v1/metadata and v2/query requests, respectively.
-    (setup, teardown, schema_setup, schema_teardown, pre_setup, post_teardown) = [
-        hge_ctx.backend_suffix(filename) + ".yaml"
-        for filename in ['setup', 'teardown', 'schema_setup', 'schema_teardown', 'pre_setup', 'post_teardown']
+    (
+        setup,
+        teardown,
+        schema_setup,
+        schema_teardown,
+        pre_setup,
+        post_teardown,
+    ) = [
+        f"{hge_ctx.backend_suffix(filename)}.yaml"
+        for filename in [
+            'setup',
+            'teardown',
+            'schema_setup',
+            'schema_teardown',
+            'pre_setup',
+            'post_teardown',
+        ]
     ]
 
     # setting the default metadata API version to v1
     setup_metadata_api_version = getattr(request.cls, 'setup_metadata_api_version',"v1")
 
-    if hge_ctx.is_default_backend:
-        if setup_metadata_api_version == "v1":
-            # setup the metadata and DB schema using the `/v1/query` endpoint
-            db_context = db_context_with_schema_common(
-                request, hge_ctx,
-                'setup_files', 'setup.yaml',
-                'teardown_files', 'teardown.yaml',
-            )
-        elif setup_metadata_api_version == "v2":
-            # setup the metadata using the "/v1/metadata" and the DB schema using the `/v2/query` endpoints
-            db_context = db_context_with_schema_common_new(
-                request, hge_ctx,
-                'setup_files', setup,
-                'teardown_files', teardown,
-                schema_setup, schema_teardown,
-                pre_setup, post_teardown,
-            )
-        else:
-            raise NotImplementedError('Invalid API version.')
-    else:
+    if hge_ctx.is_default_backend and setup_metadata_api_version == "v1":
+        # setup the metadata and DB schema using the `/v1/query` endpoint
+        db_context = db_context_with_schema_common(
+            request, hge_ctx,
+            'setup_files', 'setup.yaml',
+            'teardown_files', 'teardown.yaml',
+        )
+    elif (
+        hge_ctx.is_default_backend
+        and setup_metadata_api_version == "v2"
+        or not hge_ctx.is_default_backend
+    ):
         # setup the metadata using the "/v1/metadata" and the DB schema using the `/v2/query` endpoints
         db_context = db_context_with_schema_common_new(
             request, hge_ctx,
@@ -830,6 +851,8 @@ def db_state_context(request, hge_ctx):
             schema_setup, schema_teardown,
             pre_setup, post_teardown,
         )
+    else:
+        raise NotImplementedError('Invalid API version.')
     yield from db_context
 
 def db_context_with_schema_common(
@@ -1019,10 +1042,9 @@ def run_on_elem_or_list(f, x):
         return [f(e) for e in x]
 
 def is_help_option_present(config):
-    return any([
-        config.getoption(x)
-        for x in ['--fixtures','--help', '--collect-only']
-    ])
+    return any(
+        config.getoption(x) for x in ['--fixtures', '--help', '--collect-only']
+    )
 
 def is_master(config):
     """True if the code running the given pytest.config object is running in a xdist master

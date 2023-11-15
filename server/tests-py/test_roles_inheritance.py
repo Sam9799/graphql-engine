@@ -30,16 +30,19 @@ class TestGraphQLMutationRolesInheritance:
     setup_metadata_api_version = "v2"
 
     def test_inheritance_from_single_parent(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'inheritance_from_single_parent.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}inheritance_from_single_parent.yaml')
 
     def test_inheritance_when_mutation_permissions_conflict(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'resolve_inconsistent_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}resolve_inconsistent_permission.yaml')
 
     def test_mutation_permission_inheritance_for_nested_roles(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'inherited_mutation_permission_for_nested_roles.yaml')
+        check_query_f(
+            hge_ctx,
+            f'{self.dir()}inherited_mutation_permission_for_nested_roles.yaml',
+        )
 
     def test_defined_permission_should_override_inherited_permission(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'override_inherited_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}override_inherited_permission.yaml')
 
 @pytest.mark.usefixtures('graphql_service', 'per_class_tests_db_state')
 class TestRemoteSchemaPermissionsInheritance:
@@ -51,13 +54,13 @@ class TestRemoteSchemaPermissionsInheritance:
     setup_metadata_api_version = "v2"
 
     def test_inheritance_from_multiple_parents_having_no_conflicts(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'multiple_parents_inheritance.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}multiple_parents_inheritance.yaml')
 
     def test_conflicting_parent_permissions(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'conflicting_parent_permissions.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}conflicting_parent_permissions.yaml')
 
     def test_override_inherited_permission(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'override_inherited_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}override_inherited_permission.yaml')
 
 @use_action_fixtures
 class TestActionsPermissionInheritance:
@@ -69,10 +72,10 @@ class TestActionsPermissionInheritance:
     setup_metadata_api_version = "2"
 
     def test_inheritance_from_multiple_parents(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'multiple_parents_inheritance.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}multiple_parents_inheritance.yaml')
 
     def test_override_inherited_permission(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'override_inherited_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}override_inherited_permission.yaml')
 
 @pytest.mark.usefixtures('per_class_db_schema_for_mutation_tests', 'per_method_db_data_for_mutation_tests')
 @pytest.mark.hge_env('HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS', 'false')
@@ -85,7 +88,7 @@ class TestCustomFunctionPermissionsInheritance:
     setup_metadata_api_version = "2"
 
     def test_inheritance_from_multiple_parents(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'multiple_parents_inheritance.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}multiple_parents_inheritance.yaml')
 
     def test_override_inherited_permission(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + 'override_inherited_permission.yaml')
+        check_query_f(hge_ctx, f'{self.dir()}override_inherited_permission.yaml')

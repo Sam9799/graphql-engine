@@ -15,12 +15,12 @@ class Fixtures():
   specs = {} # Map desc [Spec]
 
   def add_setup(self, backend, setup):
-    if not backend in self.setups.keys():
+    if backend not in self.setups.keys():
       self.setups[backend] = []
     self.setups[backend].append(setup)
 
   def add_spec(self, desc, spec):
-    if not desc in self.specs.keys():
+    if desc not in self.specs.keys():
       self.specs[desc] = []
     self.specs[desc].append(spec)
 
@@ -200,7 +200,7 @@ tests_to_port = {} # Map classname Fixtures
 
 def with_test(name):
 
-  if not name in tests_to_port.keys():
+  if name not in tests_to_port.keys():
     tests_to_port[name] = Fixtures()
 
   return tests_to_port[name]

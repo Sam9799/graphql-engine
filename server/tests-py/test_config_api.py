@@ -6,7 +6,7 @@ class TestConfigApiWithAnInsecureServer:
         headers = {
             'x-hasura-role': 'admin',
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()
@@ -20,7 +20,7 @@ class TestConfigApiWithAnInsecureServer:
         headers = {
             'x-hasura-role': 'user',
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 400, resp
 
 
@@ -31,7 +31,7 @@ class TestConfigApiWithAdminSecret:
             'x-hasura-role': 'admin',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()
@@ -46,12 +46,12 @@ class TestConfigApiWithAdminSecret:
             'x-hasura-role': 'user',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 400, resp
 
     def test_request_fails_without_auth_headers(self, hge_ctx):
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config')
-        assert (resp.status_code == 401) or (resp.status_code == 400)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config')
+        assert resp.status_code in [401, 400]
 
 
 @pytest.mark.admin_secret
@@ -62,7 +62,7 @@ class TestConfigApiWithAuthHook:
             'x-hasura-role': 'admin',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()
@@ -77,12 +77,12 @@ class TestConfigApiWithAuthHook:
             'x-hasura-role': 'user',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 400, resp
 
     def test_request_fails_without_auth_headers(self, hge_ctx):
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config')
-        assert (resp.status_code == 401) or (resp.status_code == 400)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config')
+        assert resp.status_code in [401, 400]
 
 
 @pytest.mark.admin_secret
@@ -94,7 +94,7 @@ class TestConfigApiWithJwtAndNoClaims:
             'x-hasura-role': 'user',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 400, resp
 
     def test_responds_correctly(self, hge_ctx, hge_key):
@@ -102,7 +102,7 @@ class TestConfigApiWithJwtAndNoClaims:
             'x-hasura-role': 'admin',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()
@@ -120,8 +120,8 @@ class TestConfigApiWithJwtAndNoClaims:
         ]
 
     def test_request_fails_without_auth_headers(self, hge_ctx):
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config')
-        assert (resp.status_code == 401) or (resp.status_code == 400)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config')
+        assert resp.status_code in [401, 400]
 
 
 @pytest.mark.admin_secret
@@ -135,7 +135,7 @@ class TestConfigApiWithJwtAndClaimsFormat:
             'x-hasura-role': 'admin',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()
@@ -165,7 +165,7 @@ class TestConfigApiWithJwtAndClaimsNamespace:
             'x-hasura-role': 'admin',
             'x-hasura-admin-secret': hge_key,
         }
-        resp = hge_ctx.http.get(hge_ctx.hge_url + '/v1alpha1/config', headers=headers)
+        resp = hge_ctx.http.get(f'{hge_ctx.hge_url}/v1alpha1/config', headers=headers)
         assert resp.status_code == 200, resp
 
         body = resp.json()

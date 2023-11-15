@@ -56,7 +56,7 @@ class JwkCacheControlHandler(RequestHandler):
                     if val == 'true':
                         header_vals.append(param)
                     elif val.isnumeric():
-                        header_vals.append(param + "=" + val)
+                        header_vals.append(f"{param}={val}")
 
         resp = mkJSONResp(res)
         resp.headers['Cache-Control'] = ", ".join(header_vals)
@@ -71,8 +71,7 @@ class StateHandler(RequestHandler):
         return Response(HTTPStatus.METHOD_NOT_ALLOWED)
 
     def get(self, request):
-        resp = mkJSONResp(state)
-        return resp
+        return mkJSONResp(state)
 
 class ResetStateHandler(RequestHandler):
     def post(self, request):

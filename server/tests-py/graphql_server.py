@@ -40,11 +40,11 @@ class Hello(graphene.ObjectType):
     delayedHello = graphene.String(arg=graphene.String(default_value="world"))
 
     def resolve_hello(self, info, arg):
-        return "Hello " + arg
+        return f"Hello {arg}"
 
     def resolve_delayedHello(self, info, arg):
         time.sleep(10)
-        return "Hello " + arg
+        return f"Hello {arg}"
 
 hello_schema = graphene.Schema(query=Hello, subscription=Hello)
 
@@ -68,15 +68,11 @@ class HelloGraphQLEchoRequest(RequestHandler):
         res = hello_schema.execute(request.json['query'])
         respDict = res.to_dict()
 
-        # Return the result as it is, when we send an introspection query
         if respDict.get('data',{}).get('__schema',{}):
             return mkJSONResp(res)
-        # Edit the result to contain, the 'request payload' as part of the response.
-        # We can then use this to assert the request payload with the expected response.
-        else:
-            respDict.get('data', {})['hello'] = request.json
-            return Response(HTTPStatus.OK, res.to_dict(),
-                    {'Content-Type': 'application/json'})
+        respDict.get('data', {})['hello'] = request.json
+        return Response(HTTPStatus.OK, res.to_dict(),
+                {'Content-Type': 'application/json'})
 
 class HelloGraphQLExtensions(RequestHandler):
     def get(self, request):
@@ -110,9 +106,7 @@ class User(graphene.ObjectType):
     @staticmethod
     def get_by_id(_id):
         xs = list(filter(lambda u: u.id == _id, all_users))
-        if not xs:
-            return None
-        return xs[0]
+        return None if not xs else xs[0]
 
 all_users = [
     User(1, 'jane'),
@@ -251,7 +245,7 @@ class SampleAuth(graphene.ObjectType):
     hello = graphene.String(arg=graphene.String(default_value="world"))
 
     def resolve_hello(self, info, arg):
-        return "Hello " + arg
+        return f"Hello {arg}"
 
 sample_auth_schema = graphene.Schema(query=SampleAuth,
                                      subscription=SampleAuth)
@@ -289,7 +283,7 @@ class Big(graphene.ObjectType):
         return self
 
     def resolve_many(self, info, arg):
-        for i in range(arg):
+        for _ in range(arg):
             yield self
 
 class BigQuery(graphene.ObjectType):
@@ -620,7 +614,7 @@ class UnionGraphQLSchemaErrUnknownTypes(RequestHandler):
             for t in typesList:
                 if t['kind'] == 'UNION':
                     for i, p in enumerate(t['possibleTypes']):
-                       p['name'] = 'Unknown' + str(i)
+                        p['name'] = f'Unknown{str(i)}'
         return Response(HTTPStatus.OK, respDict,
                     {'Content-Type': 'application/json'})
 
@@ -793,7 +787,7 @@ class HeaderTest(graphene.ObjectType):
             elif expected_header_values != actual_header_values:
                 raise Exception(f'Header {header_name} doesn\'t match: {expected_header_values} != {actual_header_values}\n\nActual headers:\n{actual_headers}Expected headers:\n{header_test_expected_headers_str(hge_urls)}')
 
-        return "Hello " + arg
+        return f"Hello {arg}"
 
 header_test_schema = graphene.Schema(query=HeaderTest)
 
@@ -824,9 +818,7 @@ class Message(graphene.ObjectType):
     @staticmethod
     def get_by_id(_id):
         xs = list(filter(lambda u: u.id == _id, all_messages))
-        if not xs:
-            return None
-        return xs[0]
+        return None if not xs else xs[0]
 
 all_messages = [
     Message(1, 'You win!'),
@@ -923,8 +915,6 @@ def stop_server(server):
     server.server_close()
 
 if __name__ == '__main__':
-    port = DEFAULT_PORT
-    if len(sys.argv) >= 2:
-        port = int(sys.argv[1])
+    port = int(sys.argv[1]) if len(sys.argv) >= 2 else DEFAULT_PORT
     server = create_server(server_address=('localhost', port))
     server.serve_forever()

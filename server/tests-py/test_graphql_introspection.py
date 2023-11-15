@@ -22,7 +22,7 @@ def graphql_service(worker_id: str, hge_fixture_env: dict[str, str]):
 class TestGraphqlIntrospection:
 
     def test_introspection(self, hge_ctx):
-        with open(self.dir() + "/introspection.yaml") as c:
+        with open(f"{self.dir()}/introspection.yaml") as c:
             conf = yaml.load(c)
         resp, _ = check_query(hge_ctx, conf)
         hasArticle = False
@@ -43,7 +43,7 @@ class TestGraphqlIntrospection:
         assert hasArticleAuthorManualRel
 
     def test_introspection_user(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/introspection_user_role.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/introspection_user_role.yaml")
 
     @classmethod
     def dir(cls):
@@ -57,7 +57,7 @@ class TestNullableObjectRelationshipInSchema:
         return "queries/graphql_introspection/nullable_object_relationship"
 
     def test_introspection_both_directions_both_nullabilities(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/nullability.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/nullability.yaml")
 
 def getTypeNameFromType(typeObject):
     if typeObject['name'] != None:
@@ -74,7 +74,9 @@ class TestRemoteRelationshipsGraphQLNames:
         return "queries/graphql_introspection/remote_relationships"
 
     def test_relation_from_custom_schema_has_correct_name(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/relation_custom_schema_has_correct_name.yaml")
+        check_query_f(
+            hge_ctx, f"{self.dir()}/relation_custom_schema_has_correct_name.yaml"
+        )
 
 @pytest.mark.usefixtures('per_class_tests_db_state')
 class TestGraphqlIntrospectionWithCustomTableName:
@@ -82,7 +84,7 @@ class TestGraphqlIntrospectionWithCustomTableName:
     # test to check some of the type names that are generated
     # while tracking a table with a custom name
     def test_introspection(self, hge_ctx):
-        with open(self.dir() + "/introspection.yaml") as c:
+        with open(f"{self.dir()}/introspection.yaml") as c:
             conf = yaml.load(c)
         resp, _ = check_query(hge_ctx, conf)
         hasMultiSelect = False
@@ -146,7 +148,7 @@ class TestDisableGraphQLIntrospection:
     setup_metadata_api_version = "v2"
 
     def test_disable_introspection(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/disable_introspection.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/disable_introspection.yaml")
 
 @pytest.mark.usefixtures('per_class_tests_db_state')
 class TestGraphQlIntrospectionDescriptions:
@@ -158,16 +160,16 @@ class TestGraphQlIntrospectionDescriptions:
         return "queries/graphql_introspection/descriptions"
 
     def test_automatic_comment_in_db(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/automatic_comment_in_db.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/automatic_comment_in_db.yaml")
 
     def test_automatic_no_comment_in_db(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/automatic_no_comment_in_db.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/automatic_no_comment_in_db.yaml")
 
     def test_explicit_comment_in_metadata(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/explicit_comment_in_metadata.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/explicit_comment_in_metadata.yaml")
 
     def test_explicit_no_comment_in_metadata(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/explicit_no_comment_in_metadata.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/explicit_no_comment_in_metadata.yaml")
 
     def test_root_fields(self, hge_ctx):
-        check_query_f(hge_ctx, self.dir() + "/root_fields.yaml")
+        check_query_f(hge_ctx, f"{self.dir()}/root_fields.yaml")

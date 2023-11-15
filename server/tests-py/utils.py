@@ -15,7 +15,6 @@ def until_asserts_pass(tries, func):
                 break
             except AssertionError:
                 time.sleep(0.3)
-                pass
 
 def insert(hge_ctx, table, row, returning=[], headers = {}):
     return insert_many(hge_ctx, table, [row], returning, headers)

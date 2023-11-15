@@ -29,33 +29,51 @@ def get_headers(hge_ctx, role='admin'):
 class TestDevEndpoints:
 
     def test_ekg_endpoint_admin_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/ekg', headers=get_headers(hge_ctx))
+        resp = requests.get(f'{hge_ctx.hge_url}/dev/ekg', headers=get_headers(hge_ctx))
         assert resp.status_code == 200
 
     def test_ekg_endpoint_user_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/ekg', headers=get_headers(hge_ctx, 'user'))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/ekg', headers=get_headers(hge_ctx, 'user')
+        )
         assert resp.status_code == 400
 
     def test_plan_cache_endpoint_admin_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/plan_cache', headers=get_headers(hge_ctx))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/plan_cache', headers=get_headers(hge_ctx)
+        )
         assert resp.status_code == 200
 
     def test_plan_cache_endpoint_user_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/plan_cache', headers=get_headers(hge_ctx, 'user'))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/plan_cache',
+            headers=get_headers(hge_ctx, 'user'),
+        )
         assert resp.status_code == 400
 
     def test_subscriptions_endpoint_admin_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/subscriptions', headers=get_headers(hge_ctx))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/subscriptions', headers=get_headers(hge_ctx)
+        )
         assert resp.status_code == 200
 
     def test_subscriptions_endpoint_user_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/subscriptions', headers=get_headers(hge_ctx, 'user'))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/subscriptions',
+            headers=get_headers(hge_ctx, 'user'),
+        )
         assert resp.status_code == 400
 
     def test_subscriptions_extended_endpoint_admin_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/subscriptions/extended', headers=get_headers(hge_ctx))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/subscriptions/extended',
+            headers=get_headers(hge_ctx),
+        )
         assert resp.status_code == 200
 
     def test_subscriptions_extended_endpoint_user_role(self, hge_ctx):
-        resp = requests.get(hge_ctx.hge_url + '/dev/subscriptions/extended', headers=get_headers(hge_ctx, 'user'))
+        resp = requests.get(
+            f'{hge_ctx.hge_url}/dev/subscriptions/extended',
+            headers=get_headers(hge_ctx, 'user'),
+        )
         assert resp.status_code == 400

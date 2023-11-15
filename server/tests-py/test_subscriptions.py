@@ -134,7 +134,7 @@ class TestSubscriptionBasic:
 
     @pytest.mark.parametrize("transport", ['http', 'websocket', 'subscription'])
     def test_negative(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/negative_test.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/negative_test.yaml', transport)
 
     '''
         Refer: https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md#gql_connection_error
@@ -245,12 +245,14 @@ class TestSubscriptionBasicGraphQLWS:
 
     @pytest.mark.parametrize("transport", ['http', 'websocket', 'subscription'])
     def test_negative(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/negative_test.yaml', transport, gqlws=True)
+        check_query_f(
+            hge_ctx, f'{self.dir()}/negative_test.yaml', transport, gqlws=True
+        )
 
     def test_connection_error(self, hge_key, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -262,7 +264,7 @@ class TestSubscriptionBasicGraphQLWS:
     def test_start(self, hge_key, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -291,7 +293,7 @@ class TestSubscriptionBasicGraphQLWS:
     def test_start_duplicate(self, hge_key, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -300,7 +302,7 @@ class TestSubscriptionBasicGraphQLWS:
     def test_stop_without_id(self, hge_key, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -315,7 +317,7 @@ class TestSubscriptionBasicGraphQLWS:
     def test_stop(self, hge_key, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -331,7 +333,7 @@ class TestSubscriptionBasicGraphQLWS:
     def test_start_after_stop(self, hge_key, hge_ctx, ws_client_graphql_ws):
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -345,7 +347,7 @@ class TestSubscriptionBasicGraphQLWS:
         id = str(uuid.uuid4())
         if ws_client_graphql_ws.get_conn_close_state():
             ws_client_graphql_ws.create_conn()
-            if hge_key == None:
+            if hge_key is None:
                 ws_client_graphql_ws.init()
             else:
                 ws_client_graphql_ws.init_as_admin()
@@ -385,7 +387,7 @@ class TestSubscriptionLiveQueries:
         '''
         ws_client.init_as_admin()
 
-        with open(self.dir() + "/steps.yaml") as c:
+        with open(f"{self.dir()}/steps.yaml") as c:
             conf = yaml.load(c)
 
         queryTmplt = """
@@ -405,14 +407,21 @@ class TestSubscriptionLiveQueries:
             if hge_key is not None:
                 headers['X-Hasura-Admin-Secret'] = hge_key
             subscrPayload = { 'query': query, 'variables': { 'result_limit': resultLimit } }
-            respLive = ws_client.send_query(subscrPayload, query_id='live_'+str(i), headers=headers, timeout=15)
+            respLive = ws_client.send_query(
+                subscrPayload,
+                query_id=f'live_{str(i)}',
+                headers=headers,
+                timeout=15,
+            )
             liveQs.append(respLive)
             ev = next(respLive)
             assert ev['type'] == 'data', ev
-            assert ev['id'] == 'live_' + str(i), ev
-            assert ev['payload']['data'] == {'hge_tests_live_query_'+str(i): []}, ev['payload']['data']
+            assert ev['id'] == f'live_{str(i)}', ev
+            assert ev['payload']['data'] == {
+                f'hge_tests_live_query_{str(i)}': []
+            }, ev['payload']['data']
 
-        assert isinstance(conf, list) == True, 'Not an list'
+        assert isinstance(conf, list), 'Not an list'
         for index, step in enumerate(conf):
             mutationPayload = { 'query': step['query'] }
             if 'variables' in step and step['variables']:
@@ -420,18 +429,20 @@ class TestSubscriptionLiveQueries:
 
             expected_resp = json.loads(step['response'])
 
-            mutResp = ws_client.send_query(mutationPayload,'mutation_'+str(index),timeout=15)
+            mutResp = ws_client.send_query(
+                mutationPayload, f'mutation_{str(index)}', timeout=15
+            )
             ev = next(mutResp)
-            assert ev['type'] == 'data' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'data' and ev['id'] == f'mutation_{str(index)}', ev
             assert ev['payload']['data'] == expected_resp, ev['payload']['data']
 
             ev = next(mutResp)
-            assert ev['type'] == 'complete' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'complete' and ev['id'] == f'mutation_{str(index)}', ev
 
             for (i, resultLimit), respLive in zip(queries, liveQs):
                 ev = next(respLive)
                 assert ev['type'] == 'data', ev
-                assert ev['id'] == 'live_' + str(i), ev
+                assert ev['id'] == f'live_{str(i)}', ev
 
                 expectedReturnedResponse = []
                 if 'live_response' in step:
@@ -439,16 +450,15 @@ class TestSubscriptionLiveQueries:
                 elif 'returning' in expected_resp[step['name']]:
                     expectedReturnedResponse = expected_resp[step['name']]['returning']
                 expectedLimitedResponse = expectedReturnedResponse[:resultLimit]
-                expectedLiveResponse = { 'hge_tests_live_query_'+str(i): expectedLimitedResponse }
+                expectedLiveResponse = {
+                    f'hge_tests_live_query_{str(i)}': expectedLimitedResponse
+                }
 
                 assert ev['payload']['data'] == expectedLiveResponse, ev['payload']['data']
 
         for i, _ in queries:
             # stop live operation
-            frame = {
-                'id': 'live_'+str(i),
-                'type': 'stop'
-            }
+            frame = {'id': f'live_{str(i)}', 'type': 'stop'}
             ws_client.send(frame)
 
         with pytest.raises(queue.Empty):
@@ -477,24 +487,26 @@ class TestStreamingSubscription:
         }
         """
 
-        liveQs = []
         headers={}
-        articles_to_insert = []
-        for i in range(10):
-            articles_to_insert.append({"id": i + 1, "title": "Article title {}".format(i + 1)})
+        articles_to_insert = [
+            {"id": i + 1, "title": f"Article title {i + 1}"} for i in range(10)
+        ]
         insert_many(hge_ctx, {"schema": "hge_tests", "name": "articles"}, articles_to_insert)
         if hge_key is not None:
             headers['X-Hasura-Admin-Secret'] = hge_key
         subscrPayload = { 'query': query, 'variables': { 'batch_size': 2 } }
         respLive = ws_client.send_query(subscrPayload, query_id='stream_1', headers=headers, timeout=15)
-        liveQs.append(respLive)
+        liveQs = [respLive]
         for idx in range(5):
-          ev = next(respLive)
-          assert ev['type'] == 'data', ev
-          assert ev['id'] == 'stream_1', ev
-          # fetching two rows per batch
-          expected_payload = [ {"id": 2*idx+1, "title": "Article title {}".format(2*idx+1)}, {"id": 2*idx+2, "title": "Article title {}".format(2*idx+2)}]
-          assert ev['payload']['data'] == {'hge_tests_stream_query': expected_payload}, ev['payload']['data']
+            ev = next(respLive)
+            assert ev['type'] == 'data', ev
+            assert ev['id'] == 'stream_1', ev
+                  # fetching two rows per batch
+            expected_payload = [
+                {"id": 2 * idx + 1, "title": f"Article title {2 * idx + 1}"},
+                {"id": 2 * idx + 2, "title": f"Article title {2 * idx + 2}"},
+            ]
+            assert ev['payload']['data'] == {'hge_tests_stream_query': expected_payload}, ev['payload']['data']
 
         # stop the streaming subscription
         frame = {
@@ -521,13 +533,13 @@ class TestStreamingSubscription:
         }
         """
 
-        with open(self.dir() + "/steps.yaml") as c:
+        with open(f"{self.dir()}/steps.yaml") as c:
             conf = yaml.load(c)
 
         subscrPayload = { 'query': query, 'variables': { 'batch_size': 2, 'initial_created_at': "2020-01-01" } }
         respLive = ws_client.send_query(subscrPayload, query_id='stream_1', headers=headers, timeout=15)
 
-        assert isinstance(conf, list) == True, 'Not an list'
+        assert isinstance(conf, list), 'Not an list'
         for index, step in enumerate(conf):
             mutationPayload = { 'query': step['query'] }
             if 'variables' in step and step['variables']:
@@ -535,13 +547,15 @@ class TestStreamingSubscription:
 
             expected_resp = json.loads(step['response'])
 
-            mutResp = ws_client.send_query(mutationPayload,'mutation_'+str(index),timeout=15)
+            mutResp = ws_client.send_query(
+                mutationPayload, f'mutation_{str(index)}', timeout=15
+            )
             ev = next(mutResp)
-            assert ev['type'] == 'data' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'data' and ev['id'] == f'mutation_{str(index)}', ev
             assert ev['payload']['data'] == expected_resp, ev['payload']['data']
 
             ev = next(mutResp)
-            assert ev['type'] == 'complete' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'complete' and ev['id'] == f'mutation_{str(index)}', ev
 
             ev = next(respLive)
             assert ev['type'] == 'data', ev
@@ -577,20 +591,19 @@ class TestStreamingSubscription:
         }
         """
 
-        liveQs = []
         headers={}
         if hge_key is not None:
             headers['X-Hasura-Admin-Secret'] = hge_key
         subscrPayload = { 'query': query, 'variables': { 'batch_size': 1 } }
         respLive = ws_client.send_query(subscrPayload, query_id='stream_1', headers=headers, timeout=15)
-        liveQs.append(respLive)
+        liveQs = [respLive]
         for idx in range(2):
-          ev = next(respLive)
-          assert ev['type'] == 'data', ev
-          assert ev['id'] == 'stream_1', ev
-          # fetching two rows per batch
-          expected_payload = [ {"userId": idx + 1, "name": "Name {}".format(idx+1)}]
-          assert ev['payload']['data'] == {'hge_tests_stream_query': expected_payload}, ev['payload']['data']
+            ev = next(respLive)
+            assert ev['type'] == 'data', ev
+            assert ev['id'] == 'stream_1', ev
+                  # fetching two rows per batch
+            expected_payload = [{"userId": idx + 1, "name": f"Name {idx + 1}"}]
+            assert ev['payload']['data'] == {'hge_tests_stream_query': expected_payload}, ev['payload']['data']
 
         # stop the streaming subscription
         frame = {
@@ -616,7 +629,7 @@ class TestSubscriptionLiveQueriesForGraphQLWS:
         '''
         ws_client_graphql_ws.init_as_admin()
 
-        with open(self.dir() + "/steps.yaml") as c:
+        with open(f"{self.dir()}/steps.yaml") as c:
             conf = yaml.load(c)
 
         queryTmplt = """
@@ -636,14 +649,21 @@ class TestSubscriptionLiveQueriesForGraphQLWS:
             if hge_key is not None:
                 headers['X-Hasura-Admin-Secret'] = hge_key
             subscrPayload = { 'query': query, 'variables': { 'result_limit': resultLimit } }
-            respLive = ws_client_graphql_ws.send_query(subscrPayload, query_id='live_'+str(i), headers=headers, timeout=15)
+            respLive = ws_client_graphql_ws.send_query(
+                subscrPayload,
+                query_id=f'live_{str(i)}',
+                headers=headers,
+                timeout=15,
+            )
             liveQs.append(respLive)
             ev = next(respLive)
             assert ev['type'] == 'next', ev
-            assert ev['id'] == 'live_' + str(i), ev
-            assert ev['payload']['data'] == {'hge_tests_live_query_'+str(i): []}, ev['payload']['data']
+            assert ev['id'] == f'live_{str(i)}', ev
+            assert ev['payload']['data'] == {
+                f'hge_tests_live_query_{str(i)}': []
+            }, ev['payload']['data']
 
-        assert isinstance(conf, list) == True, 'Not an list'
+        assert isinstance(conf, list), 'Not an list'
         for index, step in enumerate(conf):
             mutationPayload = { 'query': step['query'] }
             if 'variables' in step and step['variables']:
@@ -651,18 +671,20 @@ class TestSubscriptionLiveQueriesForGraphQLWS:
 
             expected_resp = json.loads(step['response'])
 
-            mutResp = ws_client_graphql_ws.send_query(mutationPayload,'mutation_'+str(index),timeout=15)
+            mutResp = ws_client_graphql_ws.send_query(
+                mutationPayload, f'mutation_{str(index)}', timeout=15
+            )
             ev = next(mutResp)
-            assert ev['type'] == 'next' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'next' and ev['id'] == f'mutation_{str(index)}', ev
             assert ev['payload']['data'] == expected_resp, ev['payload']['data']
 
             ev = next(mutResp)
-            assert ev['type'] == 'complete' and ev['id'] == 'mutation_'+str(index), ev
+            assert ev['type'] == 'complete' and ev['id'] == f'mutation_{str(index)}', ev
 
             for (i, resultLimit), respLive in zip(queries, liveQs):
                 ev = next(respLive)
                 assert ev['type'] == 'next', ev
-                assert ev['id'] == 'live_' + str(i), ev
+                assert ev['id'] == f'live_{str(i)}', ev
 
                 expectedReturnedResponse = []
                 if 'live_response' in step:
@@ -670,16 +692,15 @@ class TestSubscriptionLiveQueriesForGraphQLWS:
                 elif 'returning' in expected_resp[step['name']]:
                     expectedReturnedResponse = expected_resp[step['name']]['returning']
                 expectedLimitedResponse = expectedReturnedResponse[:resultLimit]
-                expectedLiveResponse = { 'hge_tests_live_query_'+str(i): expectedLimitedResponse }
+                expectedLiveResponse = {
+                    f'hge_tests_live_query_{str(i)}': expectedLimitedResponse
+                }
 
                 assert ev['payload']['data'] == expectedLiveResponse, ev['payload']['data']
 
         for i, _ in queries:
             # stop live operation
-            frame = {
-                'id': 'live_'+str(i),
-                'type': 'complete'
-            }
+            frame = {'id': f'live_{str(i)}', 'type': 'complete'}
             ws_client_graphql_ws.send(frame)
             ws_client_graphql_ws.clear_queue()
 
@@ -693,7 +714,7 @@ class TestSubscriptionMultiplexingPostgresMSSQL:
         return 'queries/subscriptions/multiplexing'
 
     def test_extraneous_session_variables_are_discarded_from_query(self, hge_key, hge_ctx):
-        with open(self.dir() + '/articles_query.yaml') as c:
+        with open(f'{self.dir()}/articles_query.yaml') as c:
             config = yaml.load(c)
 
         query = config['query']
@@ -726,14 +747,14 @@ class TestSubscriptionMultiplexingPostgres:
         return 'queries/subscriptions/multiplexing'
 
     def test_simple_variables_are_parameterized(self, hge_key, hge_ctx):
-        with open(self.dir() + '/articles_query_simple_variable.yaml') as c:
+        with open(f'{self.dir()}/articles_query_simple_variable.yaml') as c:
             config = yaml.load(c)
 
         response = get_explain_graphql_query_response(hge_ctx, hge_key, config['query'], config['variables'], {})
         assert response["variables"]["synthetic"] == ['1'], response["variables"]
 
     def test_array_variables_are_parameterized(self, hge_key, hge_ctx):
-        with open(self.dir() + '/articles_query_array_variable.yaml') as c:
+        with open(f'{self.dir()}/articles_query_array_variable.yaml') as c:
             config = yaml.load(c)
 
         response = get_explain_graphql_query_response(hge_ctx, hge_key, config['query'], config['variables'], {})
@@ -907,4 +928,4 @@ class TestSubscriptionMSSQLChunkedResults:
         ws_client.send(obj)
         ev = ws_client.get_ws_query_event('1',15)
         assert ev['type'] == 'data' and ev['id'] == '1', ev
-        assert not "errors" in ev['payload'], ev
+        assert "errors" not in ev['payload'], ev

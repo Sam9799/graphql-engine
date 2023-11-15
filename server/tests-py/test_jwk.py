@@ -8,7 +8,7 @@ pytestmark = [
 
 def wait_until_request_count_reaches(num_requests: int, state_key: str, timeout_secs: int, jwk_server_url: str) -> float:
     start_time = perf_counter()
-    requests.post(jwk_server_url + '/reset-state')
+    requests.post(f'{jwk_server_url}/reset-state')
     request_count = 0
     time_elapsed = 0
 
@@ -18,7 +18,7 @@ def wait_until_request_count_reaches(num_requests: int, state_key: str, timeout_
             raise Exception(f'Waited {time_elapsed} seconds for {state_key} JWK requests to reach {num_requests}. Only received {request_count}.')
 
         sleep(0.2)
-        state = requests.get(jwk_server_url + '/state').json()
+        state = requests.get(f'{jwk_server_url}/state').json()
         request_count = state[state_key]
 
     return time_elapsed

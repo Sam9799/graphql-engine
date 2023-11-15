@@ -12,10 +12,10 @@ class CookieAuth(RequestHandler):
         headers = {k.lower(): v for k, v in request.headers.items()}
 
         print(headers)
-        cookieHdrs = []
         if 'cookie' in headers and headers['cookie']:
             res = {'x-hasura-role': 'admin'}
 
+            cookieHdrs = []
             for k, v in headers.items():
                 if 'response-set-cookie' in k:
                     hdr = ('Set-Cookie', v)
@@ -29,10 +29,10 @@ class CookieAuth(RequestHandler):
     def post(self, request):
         print('auth POST request')
         headers = {k.lower(): v for k, v in request.json['headers'].items()}
-        cookieHdrs = []
-
         if 'cookie' in headers and headers['cookie']:
             res = {'x-hasura-role': 'admin'}
+
+            cookieHdrs = []
 
             for k, v in headers.items():
                 if 'response-set-cookie' in k:

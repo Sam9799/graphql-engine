@@ -135,8 +135,10 @@ def run_benchmark_set(benchmark_set, use_spot=True):
     # Prefer this instead of 'print()' so we can follow along with concurrent execution:
     def say(s):
         print(f"*** \033[92m {benchmark_set}: {s} \033[0m")
+
     def warn(s):
         print(f"*** \033[93m {benchmark_set}: {s} \033[0m")
+
     boto3_session = new_boto_session()
     # boto3_session = boto3.Session(profile_name='benchmarks')
     ec2_client = boto3_session.client('ec2', region_name='us-east-2')
@@ -194,41 +196,31 @@ def run_benchmark_set(benchmark_set, use_spot=True):
                     # Launch beefy ec2 instances that will run the actual benchmarks:
                     instance = ec2.create_instances(
                         ImageId=runner_image_id,
-                        MinCount=1, MaxCount=1,
-                        # NOTE: benchmarks are tuned very specifically to this instance type  and
-                        # the other settings here (see bench.sh):
-                        #   Lately AWS seems to be running out of capacity and so we may need to research 
-                        # (check numa configuration, etc) and switch to one of these:
-                        #   https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/processor_state_control.html
+                        MinCount=1,
+                        MaxCount=1,
                         InstanceType='c4.8xlarge',
                         KeyName='hasura-benchmarks-runner',
                         InstanceInitiatedShutdownBehavior='terminate',
-                        # Disable hyperthreading:
-                        CpuOptions={
-                            'CoreCount': 18,
-                            'ThreadsPerCore': 1
-                        },
-                        # AFAICT this is always true for c4 instances and comes at no additional
-                        # charge, but the console shows 'false' if we don't set this...
+                        CpuOptions={'CoreCount': 18, 'ThreadsPerCore': 1},
                         EbsOptimized=True,
                         InstanceMarketOptions=market_type,
-                        TagSpecifications=[{
-                            'ResourceType': 'instance',
-                            'Tags': [
-                               # Informational. This will show up in console:
-                               {'Key': 'Name',
-                                'Value': 'hasura-benchmarks-runner-'+benchmark_set
-                               },
-                               # "Owner" here is an arbitrary name; this tag allows us to define an
-                               # IAM policy that effectively restricts hasura-benchmarks-runner to
-                               # only terminating instances that it has started (here):
-                               {'Key': 'Owner',
-                                'Value': 'hasura-benchmarks-runner'
-                               }
-                            ]
-                        }],
-                        SecurityGroupIds=[ 'hasura-benchmarks-runner' ]
-                     )[0]
+                        TagSpecifications=[
+                            {
+                                'ResourceType': 'instance',
+                                'Tags': [
+                                    {
+                                        'Key': 'Name',
+                                        'Value': f'hasura-benchmarks-runner-{benchmark_set}',
+                                    },
+                                    {
+                                        'Key': 'Owner',
+                                        'Value': 'hasura-benchmarks-runner',
+                                    },
+                                ],
+                            }
+                        ],
+                        SecurityGroupIds=['hasura-benchmarks-runner'],
+                    )[0]
 
                 except botocore.exceptions.ClientError as error:
                     if error.response['Error']['Code'] == 'InsufficientInstanceCapacity':
@@ -249,91 +241,90 @@ def run_benchmark_set(benchmark_set, use_spot=True):
                 instance.load()
                 # NOTE: at this point we may still not be able to SSH in
                 return instance
-    try:
-      # for reasons of ergonomics and compatibility on CI, we want to supply the SSH key as an environment variable. Unfortunately I'm not sure how to do that without writing to a file
-      with tempfile.NamedTemporaryFile(mode='w+') as key_file:
-        key_file.write(BENCHMARKS_RUNNER_PRIVATE_KEY)
-        key_file.seek(0)
 
-        instance = launch_instance()
-        c = Connection(
-            instance.public_dns_name,
-            user="ubuntu",
-            connect_timeout=10,
-            connect_kwargs={
-                # "key_filename": "
-                "key_filename": key_file.name,
-                ## NOTE: I couldn't figure out how to take the key from a string:
-                ##    https://github.com/paramiko/paramiko/issues/1866
-                # "pkey": paramiko.rsakey.RSAKey.from_private_key(io.StringIO(BENCHMARKS_AWS_PRIVATE_KEY)),
-            }
-        )
-        # It can take some time for our EC2 instances to become available, so
-        # we need to retry SSH connections for a while:
-        say("Waiting for SSH to come up")
-        conn_attempts = range(0,20)
-        for n in conn_attempts:
-            try:
-                c.run("whoami", hide='out')
-            except:
-                if n == conn_attempts[-1]:
-                    raise
-                else:
+    try:
+              # for reasons of ergonomics and compatibility on CI, we want to supply the SSH key as an environment variable. Unfortunately I'm not sure how to do that without writing to a file
+        with tempfile.NamedTemporaryFile(mode='w+') as key_file:
+            key_file.write(BENCHMARKS_RUNNER_PRIVATE_KEY)
+            key_file.seek(0)
+
+            instance = launch_instance()
+            c = Connection(
+                instance.public_dns_name,
+                user="ubuntu",
+                connect_timeout=10,
+                connect_kwargs={
+                    # "key_filename": "
+                    "key_filename": key_file.name,
+                    ## NOTE: I couldn't figure out how to take the key from a string:
+                    ##    https://github.com/paramiko/paramiko/issues/1866
+                    # "pkey": paramiko.rsakey.RSAKey.from_private_key(io.StringIO(BENCHMARKS_AWS_PRIVATE_KEY)),
+                }
+            )
+            # It can take some time for our EC2 instances to become available, so
+            # we need to retry SSH connections for a while:
+            say("Waiting for SSH to come up")
+            conn_attempts = range(0,20)
+            for n in conn_attempts:
+                try:
+                    c.run("whoami", hide='out')
+                except:
+                    if n == conn_attempts[-1]:
+                        raise
                     time.sleep(1)
                     continue
-            break
+                break
 
-        # Install any extra dependencies (TODO: bake these into AMI)
-        c.sudo('apt-get update')
-        c.sudo('apt-get upgrade -y')
-        c.sudo('apt-get install -y jq')
+            # Install any extra dependencies (TODO: bake these into AMI)
+            c.sudo('apt-get update')
+            c.sudo('apt-get upgrade -y')
+            c.sudo('apt-get install -y jq')
 
-        # In case our heroic exception handling and cleanup attempts here fail,
-        # make sure this instance shuts down (and is terminated, per
-        # InstanceInitiatedShutdownBehavior) after X minutes:
-        c.sudo('shutdown -P +20 "Oops, we failed to clean up this instance; terminating now"')
+            # In case our heroic exception handling and cleanup attempts here fail,
+            # make sure this instance shuts down (and is terminated, per
+            # InstanceInitiatedShutdownBehavior) after X minutes:
+            c.sudo('shutdown -P +20 "Oops, we failed to clean up this instance; terminating now"')
 
-        say("Uploading and loading docker image under test")
-        patchwork.transfers.rsync(c, HASURA_DOCKER_IMAGE, '/tmp/hasura_image.tar', rsync_opts="--quiet")
-        hasura_docker_image_name = c.run(
-            "docker load -i /tmp/hasura_image.tar | grep '^Loaded image: ' | sed 's/Loaded image: //g'",
-            pty=True
-        ).stdout.strip()
+            say("Uploading and loading docker image under test")
+            patchwork.transfers.rsync(c, HASURA_DOCKER_IMAGE, '/tmp/hasura_image.tar', rsync_opts="--quiet")
+            hasura_docker_image_name = c.run(
+                "docker load -i /tmp/hasura_image.tar | grep '^Loaded image: ' | sed 's/Loaded image: //g'",
+                pty=True
+            ).stdout.strip()
 
-        say(f"Running benchmarks for: {hasura_docker_image_name}")
-        # Upload the benchmarks directory to remote (though we only care about 'benchmark_set')
-        patchwork.transfers.rsync(c, abs_path('../benchmarks'), '/tmp', exclude='venv', rsync_opts="--quiet")
-        with c.cd("/tmp/benchmarks"):
-            # We'll sleep for the 'huge_schema' case to allow memory to settle,
-            # since measuring idle residency to support the schema is the main
-            # point of this test. Since 'chinook' takes much longer we don't
-            # lose any wallclock CI time by waiting here
-            # TODO the fact that we're mentioning a specific benchmark set here is a wart:
-            post_setup_sleep = 90 if benchmark_set == 'huge_schema' else 0
-            # NOTE: it seems like K6 is what requires pty here:
-            # NOTE: add hide='both' here if we decide to suppress output
-            lkey = os.environ['HASURA_GRAPHQL_EE_LICENSE_KEY']
-            bench_result = c.run(f"HASURA_GRAPHQL_EE_LICENSE_KEY={lkey} ./bench.sh {benchmark_set} {hasura_docker_image_name} {post_setup_sleep}", pty=True)
+            say(f"Running benchmarks for: {hasura_docker_image_name}")
+            # Upload the benchmarks directory to remote (though we only care about 'benchmark_set')
+            patchwork.transfers.rsync(c, abs_path('../benchmarks'), '/tmp', exclude='venv', rsync_opts="--quiet")
+            with c.cd("/tmp/benchmarks"):
+                # We'll sleep for the 'huge_schema' case to allow memory to settle,
+                # since measuring idle residency to support the schema is the main
+                # point of this test. Since 'chinook' takes much longer we don't
+                # lose any wallclock CI time by waiting here
+                # TODO the fact that we're mentioning a specific benchmark set here is a wart:
+                post_setup_sleep = 90 if benchmark_set == 'huge_schema' else 0
+                # NOTE: it seems like K6 is what requires pty here:
+                # NOTE: add hide='both' here if we decide to suppress output
+                lkey = os.environ['HASURA_GRAPHQL_EE_LICENSE_KEY']
+                bench_result = c.run(f"HASURA_GRAPHQL_EE_LICENSE_KEY={lkey} ./bench.sh {benchmark_set} {hasura_docker_image_name} {post_setup_sleep}", pty=True)
 
-        with tempfile.TemporaryDirectory("-hasura-benchmarks") as tmp:
-            filename = f"{benchmark_set}.json"
-            say(f"Fetching results and uploading to S3. Available at: {s3_url(filename)}")
+            with tempfile.TemporaryDirectory("-hasura-benchmarks") as tmp:
+                filename = f"{benchmark_set}.json"
+                say(f"Fetching results and uploading to S3. Available at: {s3_url(filename)}")
 
-            local_path = os.path.join(tmp, filename)
-            c.get(f"/tmp/benchmarks/benchmark_sets/{benchmark_set}/report.json", local=local_path)
+                local_path = os.path.join(tmp, filename)
+                c.get(f"/tmp/benchmarks/benchmark_sets/{benchmark_set}/report.json", local=local_path)
 
-            s3.upload_file(
-                local_path, RESULTS_S3_BUCKET, f"{THIS_S3_BUCKET_PREFIX}/{filename}",
-                ExtraArgs={'ACL': 'public-read'}
-            )
+                s3.upload_file(
+                    local_path, RESULTS_S3_BUCKET, f"{THIS_S3_BUCKET_PREFIX}/{filename}",
+                    ExtraArgs={'ACL': 'public-read'}
+                )
 
-        # Terminate ASAP, to save money, even though we also ensure cleanup in main():
-        say("Success! Shutting down")
-        instance.terminate()
+            # Terminate ASAP, to save money, even though we also ensure cleanup in main():
+            say("Success! Shutting down")
+            instance.terminate()
 
-        return bench_result
+            return bench_result
 
-    # If AWS evicted our spot instance (probably), try again with on-demand
     except invoke.exceptions.UnexpectedExit:
         if SHUTTING_DOWN:
             warn("interrupted, exiting")
@@ -374,13 +365,13 @@ def generate_regression_report():
             merge_base_pr = pr_num
             break
     try:
-      if merge_base_pr != merge_base_candidates[0]:
-          warn("Showing regression report against older PR in merge base!")
-      say(f"Comparing performance to changes from https://github.com/hasura/graphql-engine-mono/pull/{merge_base_pr}")
+        if merge_base_pr != merge_base_candidates[0]:
+            warn("Showing regression report against older PR in merge base!")
+        say(f"Comparing performance to changes from https://github.com/hasura/graphql-engine-mono/pull/{merge_base_pr}")
     except UnboundLocalError:
-      warn(f"Could not find a commit in merge base with associated benchmarks! (among {merge_base_candidates}")
-      warn(f"Exiting")
-      raise
+        warn(f"Could not find a commit in merge base with associated benchmarks! (among {merge_base_candidates}")
+        warn("Exiting")
+        raise
 
     # We'll accumulate a structure like this, with all non-empty maps:
     #   :: Map BenchSetName (MemInUsePctChg, LiveBytesPctChg, [ (BenchmarkName, Map Metric PctChg) ]
@@ -416,6 +407,7 @@ def generate_regression_report():
             this_bytes       =       this_report[ix]["extended_hasura_checks"][stat]
             merge_base_bytes = merge_base_report[ix]["extended_hasura_checks"][stat]
             return pct_change(merge_base_bytes, this_bytes)
+
         mem_in_use_before_diff = mem_regression(0, "mem_in_use_bytes_before")
         live_bytes_before_diff = mem_regression(0, "live_bytes_before")
         # ...and also the live_bytes after, which lets us see e.g. whether a
@@ -510,7 +502,7 @@ def generate_regression_report():
                 except (KeyError, ZeroDivisionError):
                     continue
 
-            if metrics == {}:
+            if not metrics:
                 # again, this should only happen with old reports with zeros
                 warn(f"Skipping {name} since metrics are empty")
                 continue
@@ -523,92 +515,103 @@ def generate_regression_report():
 # We (ab)use githubs syntax highlighting for displaying the regression report
 # table as a github comment, that can be easily scanned
 def pretty_print_regression_report_github_comment(results, skip_pr_report_names, merge_base_pr, output_filename):
-    f = open(output_filename, "w")
-    def out(s): f.write(s+"\n")
+    with open(output_filename, "w") as f:
+        def out(s): f.write(s+"\n")
 
-    out(f"## Benchmark Results (graphql-engine-pro)") # NOTE: We use this header to identify benchmark reports in `hide-benchmark-reports.sh`
-    out(f"<details closed><summary>Click for detailed reports, and help docs</summary>")
-    out(f"")
-    out((f"The regression report below shows, for each benchmark, the **percent change** for "
-         f"different metrics, between the merge base (the changes from **PR {merge_base_pr}**) and "
-         # NOTE: we don't use #{merge_base_pr} because we want to avoid backlinks from the target PRs
-         f"this PR. For advice on interpreting benchmarks, please see [benchmarks/README.md]"
-         f"(https://github.com/hasura/graphql-engine-mono/blob/main/server/benchmarks/README.md)."))
-    out(f"")
-    out(f"More significant regressions or improvements will be colored with `#b31d28` or `#22863a`, respectively.")
-    out(f"NOTE: throughput benchmarks are quite variable for now, and have a looser threshold for highlighting.")
-    out(f"")
-    out(f"You can view graphs of the full reports here:")
-    for benchmark_set_name, _ in results.items():
-        these_id = s3_short_id(benchmark_set_name)
-        base_id  = s3_short_id(benchmark_set_name, 'mono-pr-'+merge_base_pr)
-        out(f"- **{benchmark_set_name}**: "
-            f"[:bar_chart: these changes]({graphql_bench_url([these_id])})... "
-            f"[:bar_chart: merge base]({graphql_bench_url([base_id])})... "
-            f"[:bar_chart: both compared]({graphql_bench_url([these_id, base_id])})")
-    out(f"")
-    out(f"</details>")
-    out(f"")
+        out("## Benchmark Results (graphql-engine-pro)")
+        out(
+            "<details closed><summary>Click for detailed reports, and help docs</summary>"
+        )
+        out(f"")
+        out((f"The regression report below shows, for each benchmark, the **percent change** for "
+             f"different metrics, between the merge base (the changes from **PR {merge_base_pr}**) and "
+             # NOTE: we don't use #{merge_base_pr} because we want to avoid backlinks from the target PRs
+             f"this PR. For advice on interpreting benchmarks, please see [benchmarks/README.md]"
+             f"(https://github.com/hasura/graphql-engine-mono/blob/main/server/benchmarks/README.md)."))
+        out(f"")
+        out(
+            "More significant regressions or improvements will be colored with `#b31d28` or `#22863a`, respectively."
+        )
+        out(
+            "NOTE: throughput benchmarks are quite variable for now, and have a looser threshold for highlighting."
+        )
+        out(f"")
+        out("You can view graphs of the full reports here:")
+        for benchmark_set_name, _ in results.items():
+            these_id = s3_short_id(benchmark_set_name)
+            base_id = s3_short_id(benchmark_set_name, f'mono-pr-{merge_base_pr}')
+            out(f"- **{benchmark_set_name}**: "
+                f"[:bar_chart: these changes]({graphql_bench_url([these_id])})... "
+                f"[:bar_chart: merge base]({graphql_bench_url([base_id])})... "
+                f"[:bar_chart: both compared]({graphql_bench_url([these_id, base_id])})")
+        out(f"")
+        out("</details>")
+        out(f"")
 
-    # Return what should be the first few chars of the line, which will detemine its styling:
-    def highlight_sensitive(val=None):
-        if val == None:        return "#   "  # GRAY
-        elif abs(val) <= 2.0:  return "#   "  # GRAY
-        elif abs(val) <= 3.5:  return "*   "  # NORMAL
-        # ^^^ So far variation in min, bytes, and median seem to stay within this range.
-        elif 0 < val <= 15.0:  return "-   "  # RED
-        elif 0 < val <= 25.0:  return "--  "  # RED
-        elif 0 < val:          return "--- "  # RED
-        elif -15.0 <= val < 0: return "+   "  # GREEN
-        elif -25.0 <= val < 0: return "++  "  # GREEN
-        else:                  return "+++ "  # GREEN
-    # For noisier benchmarks (tuned for throughput benchmarks, for now)
-    def highlight_lax(val=None):
-        if val == None:        return "#   "  # GRAY
-        elif abs(val) <= 8.0:  return "#   "  # GRAY
-        elif abs(val) <= 12.0: return "*   "  # NORMAL
-        elif 0 < val <= 20.0:  return "-   "  # RED
-        elif 0 < val <= 35.0:  return "--  "  # RED
-        elif 0 < val:          return "--- "  # RED
-        elif -20.0 <= val < 0: return "+   "  # GREEN
-        elif -35.0 <= val < 0: return "++  "  # GREEN
-        else:                  return "+++ "  # GREEN
+            # Return what should be the first few chars of the line, which will detemine its styling:
+        def highlight_sensitive(val=None):
+            if val is None:        return "#   "  # GRAY
+            elif abs(val) <= 2.0:  return "#   "  # GRAY
+            elif abs(val) <= 3.5:  return "*   "  # NORMAL
+            elif 0 < val <= 15.0:  return "-   "  # RED
+            elif 0 < val <= 25.0:  return "--  "  # RED
+            elif 0 < val:          return "--- "  # RED
+            elif -15.0 <= val < 0: return "+   "  # GREEN
+            elif -25.0 <= val < 0: return "++  "  # GREEN
+            else:                  return "+++ "  # GREEN
 
-    out(f"``` diff")  # START DIFF SYNTAX
-    for benchmark_set_name, (mem_in_use_before_diff, live_bytes_before_diff, mem_in_use_after_diff, live_bytes_after_diff, benchmarks) in results.items():
-        if benchmark_set_name[:-5] in skip_pr_report_names: continue
-        l0 = live_bytes_before_diff
-        l1 = live_bytes_after_diff
-        u0 = mem_in_use_before_diff
-        # u1 = mem_in_use_after_diff
+            # For noisier benchmarks (tuned for throughput benchmarks, for now)
+        def highlight_lax(val=None):
+            if val is None:        return "#   "  # GRAY
+            elif abs(val) <= 8.0:  return "#   "  # GRAY
+            elif abs(val) <= 12.0: return "*   "  # NORMAL
+            elif 0 < val <= 20.0:  return "-   "  # RED
+            elif 0 < val <= 35.0:  return "--  "  # RED
+            elif 0 < val:          return "--- "  # RED
+            elif -20.0 <= val < 0: return "+   "  # GREEN
+            elif -35.0 <= val < 0: return "++  "  # GREEN
+            else:                  return "+++ "  # GREEN
 
-        col = highlight_sensitive
-        out(        f"{col(u0)} {benchmark_set_name[:-5]+'  ':─<21s}{'┤ MEMORY RESIDENCY (from RTS)': <30}{'mem_in_use (BEFORE benchmarks)': >38}{u0:>12.1f} ┐")
-        out(        f"{col(l0)} {                        '  ': <21s}{'│'                            : <30}{'live_bytes (BEFORE benchmarks)': >38}{l0:>12.1f} │")
-        out(        f"{col(l1)} {                        '  ': <21s}{'│'                              }{'   live_bytes  (AFTER benchmarks)':_>67}{l1:>12.1f} ┘")
-        for bench_name, metrics in benchmarks:
-            bench_name_pretty = bench_name.replace('-k6-custom','').replace('_',' ') # need at least 40 chars
-            if "throughput" in benchmark_set_name:
-                # invert the sign so we color properly, since higher throughput is better:
-                col = lambda v: highlight_lax(-v)
-            else:
-                col = highlight_sensitive
+        out("``` diff")
+        for benchmark_set_name, (mem_in_use_before_diff, live_bytes_before_diff, mem_in_use_after_diff, live_bytes_after_diff, benchmarks) in results.items():
+            if benchmark_set_name[:-5] in skip_pr_report_names: continue
+            l0 = live_bytes_before_diff
+            l1 = live_bytes_after_diff
+            u0 = mem_in_use_before_diff
+            # u1 = mem_in_use_after_diff
 
-            for metric_name, d in metrics.items():
-              if len(list(metrics.items())) == 1:  # if only one metric:
-                out(f"{col(d )} {                        '  ': <21s}{'│_'+bench_name_pretty+' '     :_<40}{                     metric_name:_>28}{d :>12.1f}  ")
-              elif metric_name == list(metrics.items())[0][0]:  # first:
-                out(f"{col(d )} {                        '  ': <21s}{'│ '+bench_name_pretty         : <40}{                     metric_name: >28}{d :>12.1f} ┐")
-              elif metric_name == list(metrics.items())[-1][0]:  # last:
-                out(f"{col(d )} {                        '  ': <21s}{'│'                                 }{               '   '+metric_name:_>67}{d :>12.1f} ┘")
-              else:   # middle, omit name
-                out(f"{col(d )} {                        '  ': <21s}{'│ '                           : <40}{                     metric_name: >28}{d :>12.1f} │")
+            col = highlight_sensitive
+            out(
+                f"{col(u0)} {f'{benchmark_set_name[:-5]}  ':─<21s}{'┤ MEMORY RESIDENCY (from RTS)': <30}{'mem_in_use (BEFORE benchmarks)': >38}{u0:>12.1f} ┐"
+            )
+            out(        f"{col(l0)} {                        '  ': <21s}{'│'                            : <30}{'live_bytes (BEFORE benchmarks)': >38}{l0:>12.1f} │")
+            out(        f"{col(l1)} {                        '  ': <21s}{'│'                              }{'   live_bytes  (AFTER benchmarks)':_>67}{l1:>12.1f} ┘")
+            for bench_name, metrics in benchmarks:
+                bench_name_pretty = bench_name.replace('-k6-custom','').replace('_',' ') # need at least 40 chars
+                if "throughput" in benchmark_set_name:
+                    # invert the sign so we color properly, since higher throughput is better:
+                    col = lambda v: highlight_lax(-v)
+                else:
+                    col = highlight_sensitive
+
+                for metric_name, d in metrics.items():
+                    if len(list(metrics.items())) == 1:  # if only one metric:
+                        out(
+                            f"{col(d)} {'  ': <21s}{f'│_{bench_name_pretty} ':_<40}{metric_name:_>28}{d:>12.1f}  "
+                        )
+                    elif metric_name == list(metrics.items())[0][0]:  # first:
+                        out(
+                            f"{col(d)} {'  ': <21s}{f'│ {bench_name_pretty}': <40}{metric_name: >28}{d:>12.1f} ┐"
+                        )
+                    elif metric_name == list(metrics.items())[-1][0]:  # last:
+                        out(f"{col(d)} {'  ': <21s}{'│'}{f'   {metric_name}':_>67}{d:>12.1f} ┘")
+                    else:   # middle, omit name
+                        out(f"{col(d )} {                        '  ': <21s}{'│ '                           : <40}{                     metric_name: >28}{d :>12.1f} │")
 
 
-    out(f"```")  # END DIFF SYNTAX
+        out("```")
 
-    say(f"Wrote github comment to {REGRESSION_REPORT_COMMENT_FILENAME}")
-    f.close()
+        say(f"Wrote github comment to {REGRESSION_REPORT_COMMENT_FILENAME}")
 
 
 def pct_change(previous, current):

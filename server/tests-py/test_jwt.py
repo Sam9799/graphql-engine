@@ -52,24 +52,21 @@ def get_header_fmt(conf):
         hdr_fmt = conf['header']['type']
         if hdr_fmt == 'Authorization':
             return (hdr_fmt, None)
-        elif hdr_fmt == 'Cookie':
-            return (hdr_fmt, conf['header']['name'])
-        elif hdr_fmt == "CustomHeader":
+        elif hdr_fmt in ['Cookie', "CustomHeader"]:
             return (hdr_fmt, conf['header']['name'])
         else:
-            raise Exception('Invalid JWT header format: %s' % conf)
+            raise Exception(f'Invalid JWT header format: {conf}')
     except KeyError:
         print('header conf not found in JWT conf, defaulting to Authorization')
-        hdr_fmt = ('Authorization', None)
-        return hdr_fmt
+        return 'Authorization', None
 
 
 def mk_authz_header(conf, token):
     (header, name) = get_header_fmt(conf)
     if header == 'Authorization':
-        return {'Authorization': 'Bearer ' + token}
+        return {'Authorization': f'Bearer {token}'}
     elif header == 'Cookie' and name:
-        return {'Cookie': name + '=' + token}
+        return {'Cookie': f'{name}={token}'}
     elif header == 'CustomHeader' and name:
         return {name: token}
     else:
@@ -254,9 +251,7 @@ class AbstractTestJwtBasic:
         self.claims = set_claims(self.claims, hasura_claims, claims_namespace_path)
 
         wrong_key = str(self.gen_rsa_key())
-        other_algo = 'HS256'
-        if jwt_configuration.algorithm == 'HS256':
-            other_algo = 'HS384'
+        other_algo = 'HS384' if jwt_configuration.algorithm == 'HS256' else 'HS256'
         token = jwt.encode(self.claims, wrong_key, algorithm=other_algo)
         authz_header = mk_authz_header(jwt_configuration.server_configuration, token)
         self.conf['headers'].update(authz_header)
@@ -311,7 +306,7 @@ class AbstractTestJwtBasic:
     @pytest.fixture(autouse=True)
     def transact(self, setup):
         self.dir = 'queries/graphql_query/permissions'
-        with open(self.dir + '/user_select_query_unpublished_articles.yaml') as c:
+        with open(f'{self.dir}/user_select_query_unpublished_articles.yaml') as c:
             self.conf = yaml.load(c)
         curr_time = datetime.now()
         exp_time = curr_time + timedelta(hours=10)
@@ -325,9 +320,9 @@ class AbstractTestJwtBasic:
     @pytest.fixture(scope='class')
     def setup(self, postgis, hge_ctx):
         self.dir = 'queries/graphql_query/permissions'
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
         yield
-        hge_ctx.v1q_f(self.dir + '/teardown.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/teardown.yaml')
 
     @staticmethod
     def gen_rsa_key():
@@ -336,12 +331,11 @@ class AbstractTestJwtBasic:
             key_size=2048,
             backend=default_backend()
         )
-        pem = private_key.private_bytes(
+        return private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
-        return pem
 
 
 @pytest.mark.jwt('rsa')
@@ -505,7 +499,7 @@ class AbstractTestJwtExpirySkew:
         exp = datetime.now(timezone.utc) - timedelta(seconds = 30)
         self.claims['exp'] = round(exp.timestamp())
         token = jwt.encode(self.claims, jwt_configuration.private_key, algorithm=jwt_configuration.algorithm)
-        self.conf['headers']['Authorization'] = 'Bearer ' + token
+        self.conf['headers']['Authorization'] = f'Bearer {token}'
         self.conf['response'] = {
             'data': {
                 'article': [{
@@ -527,7 +521,7 @@ class AbstractTestJwtExpirySkew:
     @pytest.fixture(autouse=True)
     def transact(self, setup):
         self.dir = 'queries/graphql_query/permissions'
-        with open(self.dir + '/user_select_query_unpublished_articles.yaml') as c:
+        with open(f'{self.dir}/user_select_query_unpublished_articles.yaml') as c:
             self.conf = yaml.load(c)
         curr_time = datetime.now()
         exp_time = curr_time + timedelta(hours=10)
@@ -541,9 +535,9 @@ class AbstractTestJwtExpirySkew:
     @pytest.fixture(scope='class')
     def setup(self, postgis, hge_ctx):
         self.dir = 'queries/graphql_query/permissions'
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
         yield
-        hge_ctx.v1q_f(self.dir + '/teardown.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/teardown.yaml')
 
 
 @pytest.mark.jwt('rsa', {
@@ -623,7 +617,7 @@ class AbstractTestJwtAudienceCheck:
         self.claims = set_claims(self.claims, hasura_claims)
         self.claims['aud'] = audience
         token = jwt.encode(self.claims, jwt_configuration.private_key, algorithm=jwt_configuration.algorithm)
-        self.conf['headers']['Authorization'] = 'Bearer ' + token
+        self.conf['headers']['Authorization'] = f'Bearer {token}'
         check_query(hge_ctx, self.conf, add_auth=False)
 
     def test_jwt_invalid_audience(self, hge_ctx, jwt_configuration, endpoint):
@@ -636,7 +630,7 @@ class AbstractTestJwtAudienceCheck:
         self.claims['aud'] = 'rubbish_audience'
 
         token = jwt.encode(self.claims, jwt_configuration.private_key, algorithm=jwt_configuration.algorithm)
-        self.conf['headers']['Authorization'] = 'Bearer ' + token
+        self.conf['headers']['Authorization'] = f'Bearer {token}'
         self.conf['response'] = {
             'errors': [{
                 'extensions': {
@@ -656,7 +650,7 @@ class AbstractTestJwtAudienceCheck:
     @pytest.fixture(autouse=True)
     def transact(self, setup):
         self.dir = 'queries/graphql_query/permissions'
-        with open(self.dir + '/user_select_query_unpublished_articles.yaml') as c:
+        with open(f'{self.dir}/user_select_query_unpublished_articles.yaml') as c:
             self.conf = yaml.load(c)
         curr_time = datetime.now()
         exp_time = curr_time + timedelta(hours=1)
@@ -670,9 +664,9 @@ class AbstractTestJwtAudienceCheck:
     @pytest.fixture(scope='class')
     def setup(self, postgis, hge_ctx):
         self.dir = 'queries/graphql_query/permissions'
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
         yield
-        hge_ctx.v1q_f(self.dir + '/teardown.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/teardown.yaml')
 
 
 @pytest.mark.jwt('rsa', {
@@ -731,7 +725,7 @@ class AbstractTestJwtIssuerCheck:
         self.claims['iss'] = issuer
 
         token = jwt.encode(self.claims, jwt_configuration.private_key, algorithm=jwt_configuration.algorithm)
-        self.conf['headers']['Authorization'] = 'Bearer ' + token
+        self.conf['headers']['Authorization'] = f'Bearer {token}'
         check_query(hge_ctx, self.conf, add_auth=False)
 
     def test_jwt_invalid_issuer(self, hge_ctx, jwt_configuration, endpoint):
@@ -744,7 +738,7 @@ class AbstractTestJwtIssuerCheck:
         self.claims['iss'] = 'rubbish_issuer'
 
         token = jwt.encode(self.claims, jwt_configuration.private_key, algorithm=jwt_configuration.algorithm)
-        self.conf['headers']['Authorization'] = 'Bearer ' + token
+        self.conf['headers']['Authorization'] = f'Bearer {token}'
         self.conf['response'] = {
             'errors': [{
                 'extensions': {
@@ -764,7 +758,7 @@ class AbstractTestJwtIssuerCheck:
     @pytest.fixture(autouse=True)
     def transact(self, setup):
         self.dir = 'queries/graphql_query/permissions'
-        with open(self.dir + '/user_select_query_unpublished_articles.yaml') as c:
+        with open(f'{self.dir}/user_select_query_unpublished_articles.yaml') as c:
             self.conf = yaml.load(c)
         curr_time = datetime.now()
         exp_time = curr_time + timedelta(hours=1)
@@ -778,9 +772,9 @@ class AbstractTestJwtIssuerCheck:
     @pytest.fixture(scope='class')
     def setup(self, postgis, hge_ctx):
         self.dir = 'queries/graphql_query/permissions'
-        hge_ctx.v1q_f(self.dir + '/setup.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/setup.yaml')
         yield
-        hge_ctx.v1q_f(self.dir + '/teardown.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/teardown.yaml')
 
 
 @pytest.mark.jwt('rsa', {

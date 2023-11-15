@@ -162,8 +162,7 @@ class HeaderFromValue:
         return HeaderFromValue(name, value)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["value"] = from_str(self.value)
         return result
 
@@ -186,8 +185,7 @@ class HeaderFromEnv:
         return HeaderFromEnv(name, value_from_env)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["value_from_env"] = from_str(self.value_from_env)
         return result
 
@@ -213,8 +211,7 @@ class ObjectField:
         return ObjectField(name, type, description)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["type"] = from_str(self.type)
         result["description"] = from_union([from_str, from_none], self.description)
         return result
@@ -236,8 +233,7 @@ class InputArgument:
         return InputArgument(name, type)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["type"] = from_str(self.type)
         return result
 
@@ -266,8 +262,7 @@ class Header:
         return Header(name, value, value_from_env)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["value"] = from_union([from_str, from_none], self.value)
         result["value_from_env"] = from_union([from_str, from_none], self.value_from_env)
         return result
@@ -309,8 +304,7 @@ class ActionDefinition:
         return ActionDefinition(handler, arguments, forward_client_headers, headers, kind, output_type, type)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["handler"] = from_str(self.handler)
+        result: dict = {"handler": from_str(self.handler)}
         result["arguments"] = from_union([lambda x: from_list(lambda x: to_class(InputArgument, x), x), from_none], self.arguments)
         result["forward_client_headers"] = from_union([from_bool, from_none], self.forward_client_headers)
         result["headers"] = from_union([lambda x: from_list(lambda x: to_class(Header, x), x), from_none], self.headers)
@@ -331,8 +325,7 @@ class Permission:
         return Permission(role)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["role"] = from_str(self.role)
+        result: dict = {"role": from_str(self.role)}
         return result
 
 
@@ -360,8 +353,7 @@ class Action:
         return Action(definition, name, comment, permissions)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(ActionDefinition, self.definition)
+        result: dict = {"definition": to_class(ActionDefinition, self.definition)}
         result["name"] = from_str(self.name)
         result["comment"] = from_union([from_str, from_none], self.comment)
         result["permissions"] = from_union([lambda x: from_list(lambda x: to_class(Permission, x), x), from_none], self.permissions)
@@ -383,8 +375,7 @@ class AllowList:
         return AllowList(collection)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["collection"] = from_str(self.collection)
+        result: dict = {"collection": from_str(self.collection)}
         return result
 
 
@@ -423,8 +414,9 @@ class RetryConfST:
         return RetryConfST(num_retries, retry_interval_seconds, timeout_seconds, tolerance_seconds)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["num_retries"] = from_union([from_int, from_none], self.num_retries)
+        result: dict = {
+            "num_retries": from_union([from_int, from_none], self.num_retries)
+        }
         result["retry_interval_seconds"] = from_union([from_int, from_none], self.retry_interval_seconds)
         result["timeout_seconds"] = from_union([from_int, from_none], self.timeout_seconds)
         result["tolerance_seconds"] = from_union([from_int, from_none], self.tolerance_seconds)
@@ -470,8 +462,9 @@ class CronTrigger:
         return CronTrigger(headers, include_in_metadata, name, schedule, webhook, comment, payload, retry_conf)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["headers"] = from_list(lambda x: to_class(Header, x), self.headers)
+        result: dict = {
+            "headers": from_list(lambda x: to_class(Header, x), self.headers)
+        }
         result["include_in_metadata"] = from_bool(self.include_in_metadata)
         result["name"] = from_str(self.name)
         result["schedule"] = from_str(self.schedule)
@@ -503,8 +496,7 @@ class EnumValue:
         return EnumValue(value, description, is_deprecated)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["value"] = from_str(self.value)
+        result: dict = {"value": from_str(self.value)}
         result["description"] = from_union([from_str, from_none], self.description)
         result["is_deprecated"] = from_union([from_bool, from_none], self.is_deprecated)
         return result
@@ -531,8 +523,7 @@ class EnumType:
         return EnumType(name, values, description)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["values"] = from_list(lambda x: to_class(EnumValue, x), self.values)
         result["description"] = from_union([from_str, from_none], self.description)
         return result
@@ -559,8 +550,7 @@ class InputObjectField:
         return InputObjectField(name, type, description)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["type"] = from_str(self.type)
         result["description"] = from_union([from_str, from_none], self.description)
         return result
@@ -587,8 +577,11 @@ class InputObjectType:
         return InputObjectType(fields, name, description)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["fields"] = from_list(lambda x: to_class(InputObjectField, x), self.fields)
+        result: dict = {
+            "fields": from_list(
+                lambda x: to_class(InputObjectField, x), self.fields
+            )
+        }
         result["name"] = from_str(self.name)
         result["description"] = from_union([from_str, from_none], self.description)
         return result
@@ -607,8 +600,7 @@ class QualifiedTable:
         return QualifiedTable(name, schema)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["schema"] = from_str(self.schema)
         return result
 
@@ -643,8 +635,7 @@ class CustomTypeObjectRelationship:
         return CustomTypeObjectRelationship(field_mapping, name, remote_table, type)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["field_mapping"] = from_dict(from_str, self.field_mapping)
+        result: dict = {"field_mapping": from_dict(from_str, self.field_mapping)}
         result["name"] = from_str(self.name)
         result["remote_table"] = from_union([lambda x: to_class(QualifiedTable, x), from_str], self.remote_table)
         result["type"] = to_enum(CustomTypeObjectRelationshipType, self.type)
@@ -675,8 +666,11 @@ class ObjectType:
         return ObjectType(fields, name, description, relationships)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["fields"] = from_list(lambda x: to_class(InputObjectField, x), self.fields)
+        result: dict = {
+            "fields": from_list(
+                lambda x: to_class(InputObjectField, x), self.fields
+            )
+        }
         result["name"] = from_str(self.name)
         result["description"] = from_union([from_str, from_none], self.description)
         result["relationships"] = from_union([lambda x: from_list(lambda x: to_class(CustomTypeObjectRelationship, x), x), from_none], self.relationships)
@@ -701,8 +695,7 @@ class ScalarType:
         return ScalarType(name, description)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["description"] = from_union([from_str, from_none], self.description)
         return result
 
@@ -724,8 +717,15 @@ class CustomTypes:
         return CustomTypes(enums, input_objects, objects, scalars)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["enums"] = from_union([lambda x: from_list(lambda x: to_class(EnumType, x), x), from_none], self.enums)
+        result: dict = {
+            "enums": from_union(
+                [
+                    lambda x: from_list(lambda x: to_class(EnumType, x), x),
+                    from_none,
+                ],
+                self.enums,
+            )
+        }
         result["input_objects"] = from_union([lambda x: from_list(lambda x: to_class(InputObjectType, x), x), from_none], self.input_objects)
         result["objects"] = from_union([lambda x: from_list(lambda x: to_class(ObjectType, x), x), from_none], self.objects)
         result["scalars"] = from_union([lambda x: from_list(lambda x: to_class(ScalarType, x), x), from_none], self.scalars)
@@ -756,8 +756,11 @@ class FunctionConfiguration:
         return FunctionConfiguration(session_argument)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["session_argument"] = from_union([from_str, from_none], self.session_argument)
+        result: dict = {
+            "session_argument": from_union(
+                [from_str, from_none], self.session_argument
+            )
+        }
         return result
 
 
@@ -774,8 +777,7 @@ class QualifiedFunction:
         return QualifiedFunction(name, schema)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["schema"] = from_str(self.schema)
         return result
 
@@ -799,8 +801,11 @@ class CustomFunction:
         return CustomFunction(function, configuration)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["function"] = from_union([lambda x: to_class(QualifiedFunction, x), from_str], self.function)
+        result: dict = {
+            "function": from_union(
+                [lambda x: to_class(QualifiedFunction, x), from_str], self.function
+            )
+        }
         result["configuration"] = from_union([lambda x: to_class(FunctionConfiguration, x), from_none], self.configuration)
         return result
 
@@ -821,8 +826,7 @@ class QueryCollection:
         return QueryCollection(name, query)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["query"] = from_str(self.query)
         return result
 
@@ -839,8 +843,11 @@ class Definition:
         return Definition(queries)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["queries"] = from_list(lambda x: to_class(QueryCollection, x), self.queries)
+        result: dict = {
+            "queries": from_list(
+                lambda x: to_class(QueryCollection, x), self.queries
+            )
+        }
         return result
 
 
@@ -865,8 +872,7 @@ class QueryCollectionEntry:
         return QueryCollectionEntry(definition, name, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(Definition, self.definition)
+        result: dict = {"definition": to_class(Definition, self.definition)}
         result["name"] = from_str(self.name)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -896,8 +902,11 @@ class RemoteSchemaDef:
         return RemoteSchemaDef(forward_client_headers, headers, timeout_seconds, url, url_from_env)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["forward_client_headers"] = from_union([from_bool, from_none], self.forward_client_headers)
+        result: dict = {
+            "forward_client_headers": from_union(
+                [from_bool, from_none], self.forward_client_headers
+            )
+        }
         result["headers"] = from_union([lambda x: from_list(lambda x: to_class(Header, x), x), from_none], self.headers)
         result["timeout_seconds"] = from_union([to_float, from_none], self.timeout_seconds)
         result["url"] = from_union([from_str, from_none], self.url)
@@ -926,8 +935,7 @@ class RemoteSchema:
         return RemoteSchema(definition, name, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(RemoteSchemaDef, self.definition)
+        result: dict = {"definition": to_class(RemoteSchemaDef, self.definition)}
         result["name"] = from_str(self.name)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -952,8 +960,7 @@ class ArrRelUsingFKeyOn:
         return ArrRelUsingFKeyOn(column, table)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["column"] = from_str(self.column)
+        result: dict = {"column": from_str(self.column)}
         result["table"] = from_union([lambda x: to_class(QualifiedTable, x), from_str], self.table)
         return result
 
@@ -979,8 +986,7 @@ class ArrRelUsingManualMapping:
         return ArrRelUsingManualMapping(column_mapping, remote_table)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["column_mapping"] = from_dict(from_str, self.column_mapping)
+        result: dict = {"column_mapping": from_dict(from_str, self.column_mapping)}
         result["remote_table"] = from_union([lambda x: to_class(QualifiedTable, x), from_str], self.remote_table)
         return result
 
@@ -1006,8 +1012,12 @@ class ArrRelUsing:
         return ArrRelUsing(foreign_key_constraint_on, manual_configuration)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["foreign_key_constraint_on"] = from_union([lambda x: to_class(ArrRelUsingFKeyOn, x), from_none], self.foreign_key_constraint_on)
+        result: dict = {
+            "foreign_key_constraint_on": from_union(
+                [lambda x: to_class(ArrRelUsingFKeyOn, x), from_none],
+                self.foreign_key_constraint_on,
+            )
+        }
         result["manual_configuration"] = from_union([lambda x: to_class(ArrRelUsingManualMapping, x), from_none], self.manual_configuration)
         return result
 
@@ -1033,8 +1043,7 @@ class ArrayRelationship:
         return ArrayRelationship(name, using, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["using"] = to_class(ArrRelUsing, self.using)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1067,8 +1076,11 @@ class ComputedFieldDefinition:
         return ComputedFieldDefinition(function, session_argument, table_argument)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["function"] = from_union([lambda x: to_class(QualifiedFunction, x), from_str], self.function)
+        result: dict = {
+            "function": from_union(
+                [lambda x: to_class(QualifiedFunction, x), from_str], self.function
+            )
+        }
         result["session_argument"] = from_union([from_str, from_none], self.session_argument)
         result["table_argument"] = from_union([from_str, from_none], self.table_argument)
         return result
@@ -1095,8 +1107,9 @@ class ComputedField:
         return ComputedField(definition, name, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(ComputedFieldDefinition, self.definition)
+        result: dict = {
+            "definition": to_class(ComputedFieldDefinition, self.definition)
+        }
         result["name"] = from_str(self.name)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1144,8 +1157,7 @@ class CustomRootFields:
         return CustomRootFields(delete, delete_by_pk, insert, insert_one, select, select_aggregate, select_by_pk, update, update_by_pk)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["delete"] = from_union([from_str, from_none], self.delete)
+        result: dict = {"delete": from_union([from_str, from_none], self.delete)}
         result["delete_by_pk"] = from_union([from_str, from_none], self.delete_by_pk)
         result["insert"] = from_union([from_str, from_none], self.insert)
         result["insert_one"] = from_union([from_str, from_none], self.insert_one)
@@ -1179,8 +1191,12 @@ class TableConfig:
         return TableConfig(custom_column_names, custom_name, custom_root_fields)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["custom_column_names"] = from_union([lambda x: from_dict(from_str, x), from_none], self.custom_column_names)
+        result: dict = {
+            "custom_column_names": from_union(
+                [lambda x: from_dict(from_str, x), from_none],
+                self.custom_column_names,
+            )
+        }
         result["custom_name"] = from_union([from_str, from_none], self.custom_name)
         result["custom_root_fields"] = from_union([lambda x: to_class(CustomRootFields, x), from_none], self.custom_root_fields)
         return result
@@ -1203,8 +1219,25 @@ class DeletePermission:
         return DeletePermission(filter)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["filter"] = from_union([lambda x: from_dict(lambda x: from_union([lambda x: from_dict(lambda x: x, x), to_float, from_str], x), x), from_none], self.filter)
+        result: dict = {
+            "filter": from_union(
+                [
+                    lambda x: from_dict(
+                        lambda x: from_union(
+                            [
+                                lambda x: from_dict(lambda x: x, x),
+                                to_float,
+                                from_str,
+                            ],
+                            x,
+                        ),
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.filter,
+            )
+        }
         return result
 
 
@@ -1229,8 +1262,7 @@ class DeletePermissionEntry:
         return DeletePermissionEntry(permission, role, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["permission"] = to_class(DeletePermission, self.permission)
+        result: dict = {"permission": to_class(DeletePermission, self.permission)}
         result["role"] = from_str(self.role)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1262,8 +1294,15 @@ class OperationSpec:
         return OperationSpec(columns, payload)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["columns"] = from_union([lambda x: from_list(from_str, x), lambda x: to_enum(EventTriggerColumnsEnum, x)], self.columns)
+        result: dict = {
+            "columns": from_union(
+                [
+                    lambda x: from_list(from_str, x),
+                    lambda x: to_enum(EventTriggerColumnsEnum, x),
+                ],
+                self.columns,
+            )
+        }
         result["payload"] = from_union([lambda x: from_list(from_str, x), lambda x: to_enum(EventTriggerColumnsEnum, x), from_none], self.payload)
         return result
 
@@ -1295,8 +1334,7 @@ class EventTriggerDefinition:
         return EventTriggerDefinition(enable_manual, delete, insert, update)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["enable_manual"] = from_bool(self.enable_manual)
+        result: dict = {"enable_manual": from_bool(self.enable_manual)}
         result["delete"] = from_union([lambda x: to_class(OperationSpec, x), from_none], self.delete)
         result["insert"] = from_union([lambda x: to_class(OperationSpec, x), from_none], self.insert)
         result["update"] = from_union([lambda x: to_class(OperationSpec, x), from_none], self.update)
@@ -1332,8 +1370,9 @@ class RetryConf:
         return RetryConf(interval_sec, num_retries, timeout_sec)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["interval_sec"] = from_union([from_int, from_none], self.interval_sec)
+        result: dict = {
+            "interval_sec": from_union([from_int, from_none], self.interval_sec)
+        }
         result["num_retries"] = from_union([from_int, from_none], self.num_retries)
         result["timeout_sec"] = from_union([from_int, from_none], self.timeout_sec)
         return result
@@ -1369,8 +1408,9 @@ class EventTrigger:
         return EventTrigger(definition, name, retry_conf, headers, webhook, webhook_from_env)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(EventTriggerDefinition, self.definition)
+        result: dict = {
+            "definition": to_class(EventTriggerDefinition, self.definition)
+        }
         result["name"] = from_str(self.name)
         result["retry_conf"] = to_class(RetryConf, self.retry_conf)
         result["headers"] = from_union([lambda x: from_list(lambda x: to_class(Header, x), x), from_none], self.headers)
@@ -1409,8 +1449,15 @@ class InsertPermission:
         return InsertPermission(columns, backend_only, check, set)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["columns"] = from_union([lambda x: from_list(from_str, x), lambda x: to_enum(EventTriggerColumnsEnum, x)], self.columns)
+        result: dict = {
+            "columns": from_union(
+                [
+                    lambda x: from_list(from_str, x),
+                    lambda x: to_enum(EventTriggerColumnsEnum, x),
+                ],
+                self.columns,
+            )
+        }
         result["backend_only"] = from_union([from_bool, from_none], self.backend_only)
         result["check"] = from_union([lambda x: from_dict(lambda x: from_union([lambda x: from_dict(lambda x: x, x), to_float, from_str], x), x), from_none], self.check)
         result["set"] = from_union([lambda x: from_dict(from_str, x), from_none], self.set)
@@ -1438,8 +1485,7 @@ class InsertPermissionEntry:
         return InsertPermissionEntry(permission, role, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["permission"] = to_class(InsertPermission, self.permission)
+        result: dict = {"permission": to_class(InsertPermission, self.permission)}
         result["role"] = from_str(self.role)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1466,8 +1512,7 @@ class ObjRelUsingManualMapping:
         return ObjRelUsingManualMapping(column_mapping, remote_table)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["column_mapping"] = from_dict(from_str, self.column_mapping)
+        result: dict = {"column_mapping": from_dict(from_str, self.column_mapping)}
         result["remote_table"] = from_union([lambda x: to_class(QualifiedTable, x), from_str], self.remote_table)
         return result
 
@@ -1493,8 +1538,11 @@ class ObjRelUsing:
         return ObjRelUsing(foreign_key_constraint_on, manual_configuration)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["foreign_key_constraint_on"] = from_union([from_str, from_none], self.foreign_key_constraint_on)
+        result: dict = {
+            "foreign_key_constraint_on": from_union(
+                [from_str, from_none], self.foreign_key_constraint_on
+            )
+        }
         result["manual_configuration"] = from_union([lambda x: to_class(ObjRelUsingManualMapping, x), from_none], self.manual_configuration)
         return result
 
@@ -1520,8 +1568,7 @@ class ObjectRelationship:
         return ObjectRelationship(name, using, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
+        result: dict = {"name": from_str(self.name)}
         result["using"] = to_class(ObjRelUsing, self.using)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1546,8 +1593,7 @@ class RemoteFieldValue:
         return RemoteFieldValue(arguments, field)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["arguments"] = from_dict(from_str, self.arguments)
+        result: dict = {"arguments": from_dict(from_str, self.arguments)}
         result["field"] = from_union([lambda x: from_dict(lambda x: to_class(RemoteFieldValue, x), x), from_none], self.field)
         return result
 
@@ -1573,8 +1619,7 @@ class RemoteRelationshipDef:
         return RemoteRelationshipDef(hasura_fields, remote_field, remote_schema)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["hasura_fields"] = from_list(from_str, self.hasura_fields)
+        result: dict = {"hasura_fields": from_list(from_str, self.hasura_fields)}
         result["remote_field"] = from_dict(lambda x: to_class(RemoteFieldValue, x), self.remote_field)
         result["remote_schema"] = from_str(self.remote_schema)
         return result
@@ -1598,8 +1643,7 @@ class RemoteRelationship:
         return RemoteRelationship(definition, name)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["definition"] = to_class(RemoteRelationshipDef, self.definition)
+        result: dict = {"definition": to_class(RemoteRelationshipDef, self.definition)}
         result["name"] = from_str(self.name)
         return result
 
@@ -1633,8 +1677,15 @@ class SelectPermission:
         return SelectPermission(columns, allow_aggregations, computed_fields, filter, limit)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["columns"] = from_union([lambda x: from_list(from_str, x), lambda x: to_enum(EventTriggerColumnsEnum, x)], self.columns)
+        result: dict = {
+            "columns": from_union(
+                [
+                    lambda x: from_list(from_str, x),
+                    lambda x: to_enum(EventTriggerColumnsEnum, x),
+                ],
+                self.columns,
+            )
+        }
         result["allow_aggregations"] = from_union([from_bool, from_none], self.allow_aggregations)
         result["computed_fields"] = from_union([lambda x: from_list(from_str, x), from_none], self.computed_fields)
         result["filter"] = from_union([lambda x: from_dict(lambda x: from_union([lambda x: from_dict(lambda x: x, x), to_float, from_str], x), x), from_none], self.filter)
@@ -1663,8 +1714,7 @@ class SelectPermissionEntry:
         return SelectPermissionEntry(permission, role, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["permission"] = to_class(SelectPermission, self.permission)
+        result: dict = {"permission": to_class(SelectPermission, self.permission)}
         result["role"] = from_str(self.role)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1696,8 +1746,15 @@ class UpdatePermission:
         return UpdatePermission(columns, check, filter, set)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["columns"] = from_union([lambda x: from_list(from_str, x), lambda x: to_enum(EventTriggerColumnsEnum, x)], self.columns)
+        result: dict = {
+            "columns": from_union(
+                [
+                    lambda x: from_list(from_str, x),
+                    lambda x: to_enum(EventTriggerColumnsEnum, x),
+                ],
+                self.columns,
+            )
+        }
         result["check"] = from_union([lambda x: from_dict(lambda x: from_union([lambda x: from_dict(lambda x: x, x), to_float, from_str], x), x), from_none], self.check)
         result["filter"] = from_union([lambda x: from_dict(lambda x: from_union([lambda x: from_dict(lambda x: x, x), to_float, from_str], x), x), from_none], self.filter)
         result["set"] = from_union([lambda x: from_dict(from_str, x), from_none], self.set)
@@ -1725,8 +1782,7 @@ class UpdatePermissionEntry:
         return UpdatePermissionEntry(permission, role, comment)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["permission"] = to_class(UpdatePermission, self.permission)
+        result: dict = {"permission": to_class(UpdatePermission, self.permission)}
         result["role"] = from_str(self.role)
         result["comment"] = from_union([from_str, from_none], self.comment)
         return result
@@ -1770,8 +1826,7 @@ class TableEntry:
         return TableEntry(table, array_relationships, computed_fields, configuration, delete_permissions, event_triggers, insert_permissions, is_enum, object_relationships, remote_relationships, select_permissions, update_permissions)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["table"] = to_class(QualifiedTable, self.table)
+        result: dict = {"table": to_class(QualifiedTable, self.table)}
         result["array_relationships"] = from_union([lambda x: from_list(lambda x: to_class(ArrayRelationship, x), x), from_none], self.array_relationships)
         result["computed_fields"] = from_union([lambda x: from_list(lambda x: to_class(ComputedField, x), x), from_none], self.computed_fields)
         result["configuration"] = from_union([lambda x: to_class(TableConfig, x), from_none], self.configuration)
@@ -1817,8 +1872,9 @@ class HasuraMetadataV2:
         return HasuraMetadataV2(tables, version, actions, allowlist, cron_triggers, custom_types, functions, query_collections, remote_schemas)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["tables"] = from_list(lambda x: to_class(TableEntry, x), self.tables)
+        result: dict = {
+            "tables": from_list(lambda x: to_class(TableEntry, x), self.tables)
+        }
         result["version"] = to_float(self.version)
         result["actions"] = from_union([lambda x: from_list(lambda x: to_class(Action, x), x), from_none], self.actions)
         result["allowlist"] = from_union([lambda x: from_list(lambda x: to_class(AllowList, x), x), from_none], self.allowlist)

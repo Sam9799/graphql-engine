@@ -17,12 +17,7 @@ class TestCompression:
     def _make_post(self, hge_ctx, u, q, h):
         if hge_ctx.hge_key is not None:
             h['X-Hasura-Admin-Secret'] = hge_ctx.hge_key
-        resp = hge_ctx.http.post(
-            hge_ctx.hge_url + u,
-            json=q,
-            headers=h
-        )
-        return resp
+        return hge_ctx.http.post(hge_ctx.hge_url + u, json=q, headers=h)
 
     def _get_config(self, f):
         with open(f) as c:
@@ -50,12 +45,12 @@ class TestCompression:
         self._assert_resp(resp, exp_resp)
 
     def test_gzip_compression_graphql(self, hge_ctx):
-        url, q, exp_resp = self._get_config(self.dir() + '/graphql_query.yaml')
+        url, q, exp_resp = self._get_config(f'{self.dir()}/graphql_query.yaml')
         resp = self._make_post(hge_ctx, url, q, self.gzip_header)
         self._assert_gzip(resp, exp_resp)
 
     def test_gzip_compression_v1_query(self, hge_ctx):
-        url, q, exp_resp = self._get_config(self.dir() + '/v1_query.yaml')
+        url, q, exp_resp = self._get_config(f'{self.dir()}/v1_query.yaml')
         resp = self._make_post(hge_ctx, url, q, self.gzip_header)
         self._assert_gzip(resp, exp_resp)
 

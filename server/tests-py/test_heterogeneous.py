@@ -16,4 +16,4 @@ class TestHeterogeneousQuery:
         return 'queries/heterogeneous'
 
     def test_basic(self, hge_ctx, transport):
-        check_query_f(hge_ctx, self.dir() + '/basic.yaml', transport)
+        check_query_f(hge_ctx, f'{self.dir()}/basic.yaml', transport)

@@ -25,9 +25,9 @@ class AbstractTestWebsocketInitCookie:
 
     @pytest.fixture(autouse=True)
     def transact(self, hge_ctx):
-        hge_ctx.v1q_f(self.dir + '/person_table.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/person_table.yaml')
         yield
-        hge_ctx.v1q_f(self.dir + '/drop_person_table.yaml')
+        hge_ctx.v1q_f(f'{self.dir}/drop_person_table.yaml')
 
     def _send_query(self, hge_ctx):
         ws_url = url(hge_ctx)
@@ -57,7 +57,7 @@ class AbstractTestWebsocketInitCookie:
                 break
             elif it == 10:
                 assert False, f'max try over: {raw}'
-            elif frame['type'] == 'connection_error' or frame['type'] == 'error':
+            elif frame['type'] in ['connection_error', 'error']:
                 assert False, f'connection error: {raw}'
             it = it + 1
 

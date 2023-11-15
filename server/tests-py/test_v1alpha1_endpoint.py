@@ -33,8 +33,6 @@ class TestV1Alpha1GraphQLErrors:
         elif hge_ctx.webhook:
             # Check whether the output is also forbidden when webhook returns forbidden
             validate.test_forbidden_webhook(hge_ctx, http_conf)
-        else:
-            assert True
 
 
     @pytest.mark.parametrize('transport', ['http', 'websocket'])

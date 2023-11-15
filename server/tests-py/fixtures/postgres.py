@@ -109,14 +109,19 @@ def create_schema(
 
         # If the test requires a read-only source, revoke all write privileges.
         if read_only:
-            connection.execute(f'REVOKE ALL PRIVILEGES ON SCHEMA public FROM public')
-            connection.execute(f'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM public')
-            connection.execute(f'GRANT USAGE ON SCHEMA public TO public')
-            connection.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO public')
-            connection.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA pg_catalog TO public')
-            connection.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA information_schema TO public')
-            connection.execute(f'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO public')
-        # Otherwise, grant all privileges.
+            connection.execute('REVOKE ALL PRIVILEGES ON SCHEMA public FROM public')
+            connection.execute(
+                'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM public'
+            )
+            connection.execute('GRANT USAGE ON SCHEMA public TO public')
+            connection.execute('GRANT SELECT ON ALL TABLES IN SCHEMA public TO public')
+            connection.execute('GRANT SELECT ON ALL TABLES IN SCHEMA pg_catalog TO public')
+            connection.execute(
+                'GRANT SELECT ON ALL TABLES IN SCHEMA information_schema TO public'
+            )
+            connection.execute(
+                'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO public'
+            )
         else:
             connection.execute(f'GRANT ALL PRIVILEGES ON DATABASE {schema_name} TO {runner_engine.url.username}')
             connection.execute(f'GRANT ALL PRIVILEGES ON SCHEMA public TO {runner_engine.url.username}')
@@ -220,8 +225,9 @@ def source_backend(
     hge_ctx: HGECtx,
     name: Optional[str] = None,
 ):
-    disabled_marker = request.node.get_closest_marker('default_source_disabled')
-    if disabled_marker:
+    if disabled_marker := request.node.get_closest_marker(
+        'default_source_disabled'
+    ):
         yield None
     else:
         yield from new_source(request, owner_engine, runner_engine, hge_ctx, name)
